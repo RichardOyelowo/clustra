@@ -18,7 +18,7 @@ class Team(Base, TimeStamp):
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
     slug: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
     desc: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     def __repr__(self) -> str:
@@ -37,7 +37,7 @@ class TeamMember(Base):
     )
     team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
-    role: Mapped[str] = mapped_column(String(100), default="viewer")
+    role: Mapped[str] = mapped_column(String(100), default="contributor")
     joined_at: Mapped[datetime] = mapped_column(DateTime,default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self) -> str:
