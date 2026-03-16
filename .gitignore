@@ -7,5 +7,5 @@ venv
 *.yml
 /*.yml
 */*.yml
-ci.yml
-cd.yml
+.github/workflows/ci.yml
+.github/workflows/cd.yml
