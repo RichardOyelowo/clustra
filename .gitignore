@@ -1,0 +1,7 @@
+venv
+*.venv
+
+# stop running while building
+*.yml
+ci.yml
+cd.yml
