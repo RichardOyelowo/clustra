@@ -7,3 +7,5 @@ import uuid
 import enum
 
 
+class Label(Base):
+    pass
