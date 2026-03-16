@@ -2,6 +2,10 @@ venv
 *.venv
 
 # stop running while building
-*/.yml
+.env
+*.env
+*.yml
+/*.yml
+*/*.yml
 ci.yml
 cd.yml
