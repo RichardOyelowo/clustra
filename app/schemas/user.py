@@ -1,3 +1,4 @@
+from .base import BaseResponse 
 from pydantic import BaseModel 
 import uuid
 
@@ -8,8 +9,7 @@ class UserCreate(BaseModel):
     plain_password: str
     
 
-
-class UserResponse(BaseModel):
+class UserResponse(BaseModel, BaseResponse):
     id: uuid.UUID
     email: str
     username: str
