@@ -11,7 +11,7 @@ class OrganizationCreate(BaseModel):
     desc: str
 
 
-class OrganizationResponse(BaseModel):
+class OrganizationResponse(BaseResponse):
     id: uuid.UUID
     name: str
     slug: str
@@ -25,7 +25,7 @@ class OrganizationMemberCreate(BaseModel):
     role: str
 
 
-class OrganizationMemberResponse(BaseModel):
+class OrganizationMemberResponse(BaseResponse):
     org_id: uuid.UUID
     user_id: uuid.UUID
     role: str
