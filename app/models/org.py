@@ -22,7 +22,7 @@ class Organization(Base, TimeStamp):
     desc: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<{name}, Organization id: {self.id}>"
+        return f"<{self.name}, Organization id: {self.id}>"
 
 
 class OrganizationMember(Base):
