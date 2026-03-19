@@ -1,11 +1,11 @@
 venv
 *.venv
+.idea
 
 # stop running while building
 .env
 *.env
 *.yml
 /*.yml
-*/*.yml
 .github/workflows/ci.yml
 .github/workflows/cd.yml
