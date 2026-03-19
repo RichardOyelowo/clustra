@@ -4,7 +4,14 @@ from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime, timezone
 from .base import Base, TimeStamp
 import uuid
+import enum
 
+
+class TeamRole(str, enum.Enum):
+    VIEWER = "viewer"
+    CONTRIBUTOR = "contributor"
+    LEAD = "lead"
+    
 
 class Team(Base, TimeStamp):
     __tablename__ = "teams"
@@ -37,7 +44,7 @@ class TeamMember(Base):
     )
     team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
-    role: Mapped[str] = mapped_column(String(100), default="contributor")
+    role: Mapped[TeamRole] = mapped_column(String(100), default="contributor")
     joined_at: Mapped[datetime] = mapped_column(DateTime,default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self) -> str:
