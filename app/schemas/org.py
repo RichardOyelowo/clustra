@@ -7,8 +7,7 @@ import uuid
 class OrganizationCreate(BaseModel):
     name: str
     slug: str
-    owner_id: uuid.UUID
-    desc: str
+    desc: str | None = None
 
 
 class OrganizationResponse(BaseResponse):
@@ -16,17 +15,15 @@ class OrganizationResponse(BaseResponse):
     name: str
     slug: str
     owner_id: uuid.UUID
-    desc: str
+    desc: str | None
 
 
 class OrganizationMemberCreate(BaseModel):
-    org_id: uuid.UUID
     user_id: uuid.UUID
-    role: str
+    role: str = "member"
 
 
 class OrganizationMemberResponse(BaseResponse):
-    org_id: uuid.UUID
     user_id: uuid.UUID
     role: str
     joined_at: datetime
