@@ -1,12 +1,11 @@
-from os import wait
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url = str
+    database_url: str
 
-    class config:
-        config = ".env"
+    class Config:
+        env_file = ".env"
 
 
 settings = Settings()
