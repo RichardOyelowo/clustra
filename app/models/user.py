@@ -18,8 +18,12 @@ class User(Base, TimeStamp):
 
     email: Mapped[str] = mapped_column(String(300), unique=True, nullable=False)
     username: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    @property
+    def hashed_password(self):
+        return self.password_hash
 
 
     def __repr__(self) -> str:
