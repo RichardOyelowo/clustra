@@ -15,7 +15,6 @@ class User(Base, TimeStamp):
             unique=True, 
             nullable=False
     )
-
     email: Mapped[str] = mapped_column(String(300), unique=True, nullable=False)
     username: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
