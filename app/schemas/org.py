@@ -1,3 +1,4 @@
+from ..models import OrganizationMemberRole
 from .base import BaseResponse
 from pydantic import BaseModel
 from datetime import datetime
@@ -20,10 +21,10 @@ class OrganizationResponse(BaseResponse):
 
 class OrganizationMemberCreate(BaseModel):
     user_id: uuid.UUID
-    role: str = "member"
+    role: OrganizationMemberRole = OrganizationMemberRole.MEMBER
 
 
 class OrganizationMemberResponse(BaseResponse):
     user_id: uuid.UUID
-    role: str
+    role: OrganizationMemberRole
     joined_at: datetime
