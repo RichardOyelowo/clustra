@@ -17,13 +17,18 @@ async def create_projects(org_id: uuid.UUID, team_id: uuid.UUID, data: ProjectCr
     pass
 
 
+@proj_router.get("/{proj_id}")
+async def get_project(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
+    pass
+
+
 @proj_router.patch("/{proj_id}")
-async def edit_project(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: proj_id, db: AsyncSession = Depends(db_session)):
+async def edit_project(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
 
 @proj_router.delete("/{proj_id}")
-async def delete_project(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: proj_id, db: AsyncSession = Depends(db_session)):
+async def delete_project(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
 
