@@ -29,16 +29,16 @@ async def delete_team(org_id: uuid.UUID, db: AsyncSession = Depends(db_session))
     pass
 
 
-@team_router.post("/teams/{team_id}/members")
+@team_router.post("/{team_id}/members")
 async def add_team_member(org_id: uuid.UUID, data: TeamMemberCreate, db:AsyncSession = Depends(db_session)) -> TeamMemberResponse:
     pass
 
 
-@team_router.get("/teams/{team_id}/members")
+@team_router.get("/{team_id}/members")
 async def get_team_members(org_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
 
-@team_router.delete("/teams/{team_id}/members/{id}")
+@team_router.delete("/{team_id}/members/{id}")
 async def delete_team_member(org_id: uuid.UUID, id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
