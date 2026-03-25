@@ -1,4 +1,3 @@
-from app.schemas.org import OrganizationMemberCreate, OrganizationMemberResponse
 from ..schemas import TeamMemberCreate, TeamMemberResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas import TeamCreate, TeamResponse

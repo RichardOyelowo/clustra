@@ -1,6 +1,6 @@
 import uuid
-from fastapi import APIRouter, Depends
 from ..database import db_session
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas import OrganizationCreate, OrganizationResponse
 from ..schemas import OrganizationMemberCreate, OrganizationMemberResponse
