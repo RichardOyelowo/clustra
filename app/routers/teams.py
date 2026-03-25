@@ -1,4 +1,3 @@
-from sqlalchemy.engine.interfaces import DBAPIModule
 from ..schemas import TeamMemberCreate, TeamMemberResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas import TeamCreate, TeamResponse
@@ -30,7 +29,7 @@ async def edit_team(org_id: uuid.UUID, team_id: uuid.UUID, db: AsyncSession = De
     pass
 
 
-@team_router.delete("/team_id}")
+@team_router.delete("/{team_id}")
 async def delete_team(org_id: uuid.UUID, team_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
