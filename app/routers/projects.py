@@ -1,7 +1,7 @@
 from ..schemas import ProjectCreate, ProjectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends
-from database import db_session
+from ..database import db_session
 import uuid
 
 proj_router = APIRouter(prefix="/orgs/{org_id}/teams/{team_id}/projects")
@@ -13,7 +13,7 @@ async def get_projects(org_id: uuid.UUID, team_id: uuid.UUID, db: AsyncSession =
 
 
 @proj_router.post("/")
-async def create_projects(org_id: uuid.UUID, team_id: uuid.UUID, data: ProjectCreate, db: AsyncSession = Depends(db_session)) -> ProjectResponse:
+async def create_projects(org_id: uuid.UUID, team_id: uuid.UUID, data: ProjectCreate, db: AsyncSession = Depends(db_session)) -> ProjectResponse: 
     pass
 
 
