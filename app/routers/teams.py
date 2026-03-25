@@ -31,7 +31,7 @@ def delete_team(org_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
 
 
 @team_router.post("/teams/{team_id}/members")
-def add_team_member(org_id: uuid.UUID, data: OrganizationMemberCreate, db:AsyncSession = Depends(db_session)) -> OrganizationMemberResponse:
+def add_team_member(org_id: uuid.UUID, data: TeamMemberCreate, db:AsyncSession = Depends(db_session)) -> TeamMemberResponse:
     pass
 
 
