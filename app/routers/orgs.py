@@ -29,16 +29,16 @@ async def delete_organization(org_id: uuid.UUID, db: AsyncSession = Depends(db_s
     pass
 
 
-@org_router.post("/orgs/{org_id}/member")
+@org_router.post("/orgs/{org_id}/members")
 async def add_members(org_id: uuid.UUID, data: OrganizationMemberCreate, db: AsyncSession = Depends(db_session)) -> OrganizationMemberResponse:
     pass
 
 
-@org_router.get("/orgs/{org_id}/member")
+@org_router.get("/orgs/{org_id}/members")
 async def get_members(org_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
 
-@org_router.delete("/orgs/{org_id}/member/{id}")
+@org_router.delete("/orgs/{org_id}/members/{id}")
 async def delete_members(org_id: uuid.UUID, id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
