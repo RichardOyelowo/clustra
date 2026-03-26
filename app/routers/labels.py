@@ -1,6 +1,5 @@
-from decimal import DecimalException
 from ..schemas import TaskLabelCreate, TaskLabelResponse
-from sqlalchemy.ext.asyncio import AsyncSession, async_object_session
+from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas import LabelCreate, LabelResponse
 from fastapi import APIRouter, Depends
 from ..database import db_session
@@ -31,7 +30,7 @@ async def edit_label(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, 
 
 
 @label_router.delete("/{label_id}")
-async def delete_label(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uui.UUID, label_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
+async def delete_label(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, label_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
 

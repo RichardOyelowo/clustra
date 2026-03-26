@@ -16,16 +16,16 @@ async def create_milestone(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.
     pass
 
 
-@milestone_router.get("/{id}")
-async def get_milestone(org_id: uuid.UUID, team_id:uuid.UUID, proj_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
+@milestone_router.get("/{milestone_id}")
+async def get_milestone(org_id: uuid.UUID, team_id:uuid.UUID, proj_id: uuid.UUID, milestone_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
 
-@milestone_router.patch("/{id}")
-async def edit_milestone(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, id: uuid.UUID, db: AsyncSession = Depends(db_session)):
+@milestone_router.patch("/{milestone_id}")
+async def edit_milestone(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, milestone_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
 
 
-@milestone_router.delete("/{id}")
-async def delete_milestone(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, id: uuid.UUID, db: AsyncSession = Depends(db_session)):
+@milestone_router.delete("/{milestone_id}")
+async def delete_milestone(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, milestone_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
     pass
