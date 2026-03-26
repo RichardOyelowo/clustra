@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from ..database import db_session
 import uuid
 
-milestone_router = APIRouter(prefix="/orgs/{org_id}/teams/{team_id}/projects/{proj_id}")
+milestone_router = APIRouter(prefix="/orgs/{org_id}/teams/{team_id}/projects/{proj_id}/milestones")
 
 @milestone_router.get("/")
 async def get_milestones(org_id: uuid.UUID, team_id: uuid.UUID, proj_id: uuid.UUID, db: AsyncSession = Depends(db_session)):
