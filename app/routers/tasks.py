@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends
 from ..database import db_session
 import uuid
 
-
 task_router = APIRouter(prefix="/orgs/{org_id}/teams/{team_id}/projects/{proj_id}/task")
 
 

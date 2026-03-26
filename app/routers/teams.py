@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends
 from ..database import db_session
 import uuid
 
-
 team_router = APIRouter(prefix="/orgs/{org_id}/teams")
 
 

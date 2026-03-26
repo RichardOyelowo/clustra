@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas import OrganizationCreate, OrganizationResponse
 from ..schemas import OrganizationMemberCreate, OrganizationMemberResponse
 
-
 org_router = APIRouter()
 
 
