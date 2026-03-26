@@ -5,7 +5,6 @@ from ..schemas import UserCreate, UserResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
 
-
 auth_router = APIRouter()
 
 
