@@ -8,14 +8,15 @@ from ..models import User
 
 
 async def register(user: UserCreate, db: AsyncSession) -> User:
-    result = await db.execute(select(User).where(User.email.lower() == user.email.lower()))
+    lower_email = user.email.lower()
+    result = await db.execute(select(User).where(User.email == lower_email)
     existing = result.scalar_one_or_none()
 
     if existing:
         raise HTTPException(status_code=409, detail="Email already associated with an account")
 
     new_user = User(
-        email= user.email,
+        email= lower_email,
         username= user.username,
         hashed_password= hash_password(user.plain_password)
     )
@@ -27,13 +28,13 @@ async def register(user: UserCreate, db: AsyncSession) -> User:
     return new_user
 
 
-async def login(email: str, password: str, db: AsyncSession) -> User:
-
+async def login(email: str, password: str, db: AsyncSession):
     async def get_user(email: str):
-        result = await db.execute(select(User).where(User.email.lower() == email.lower()))
+        lower_email = email.lower()
+        result = await db.execute(select(User).where(User.email == lower_email))
         return result.scalar_one_or_none()
 
     oauth = OAuthHandler(token_manger = tm, get_user = get_user)
-    tokens = oauth.async_login(email, password)
+    tokens = await oauth.async_login(email, password)
 
     return tokens
