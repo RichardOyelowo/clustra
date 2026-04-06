@@ -1,6 +1,9 @@
-from ..schemas import UserCreate, UserResponse
+from gatevault import hash_password, OAuthHandler
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
+from ..schemas import UserCreate
 from sqlalchemy import select
+from ..extensions import tm
 from ..models import User
 
 
@@ -25,10 +28,12 @@ async def register(user: UserCreate, db: AsyncSession) -> User:
 
 
 async def login(email: str, password: str, db: AsyncSession) -> User:
-    result = await db.execute(select(User).where(User.email.lower() == email.lower()))
-    user = result.scalar_one_or_none()
 
-    if not user or not verify_password(password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Email & Password doesn't match")
-    
-    return user
+    async def get_user(email: str):
+        result = await db.execute(select(User).where(User.email.lower() == email.lower()))
+        return result.scalar_one_or_none()
+
+    oauth = OAuthHandler(token_manger = tm, get_user = get_user)
+    tokens = oauth.async_login(email, password)
+
+    return tokens
