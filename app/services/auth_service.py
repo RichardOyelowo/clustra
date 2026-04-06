@@ -1,4 +1,4 @@
-from gatevault import hash_password, OAuthHandler
+from gatevault import OAuthHandler, hash_password
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from ..schemas import UserCreate
