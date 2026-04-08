@@ -19,6 +19,15 @@ class OrganizationResponse(BaseResponse):
     desc: str | None
 
 
+class OrganizationUpdate(BaseModel):
+    id : uuid.UUID = None
+    name: str = None
+    slug: str = None
+    owner_id: uuid.UUID = None
+    desc: str | None = None
+
+
+
 class OrganizationMemberCreate(BaseModel):
     user_id: uuid.UUID
     role: OrganizationMemberRole = OrganizationMemberRole.MEMBER
