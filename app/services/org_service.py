@@ -12,12 +12,12 @@ class OrgService:
     service class for organization routes operations
     """
 
-    async def create_org(self, org_id: UUID, data: OrganizationCreate, db: AsyncSession):
-        result = await db.execute(select(Organization).where(Organization.id == org_id))
+    async def create_org(self, data: OrganizationCreate, db: AsyncSession):
+        result = await db.execute(select(Organization).where(Organization.slug == data.slug))
         existing = result.scalar_one_or_none()
 
         if existing:
-            raise HTTPException(status_code=409, detail="Organization already exists")
+            return []
 
         data_dict = normalize_payloads(data.model_dump())
         org = Organization(**data_dict)
@@ -97,11 +97,22 @@ class OrgService:
         return member
 
 
+    async def get_members(self, org_id: UUID, db: AsyncSession):
+        result = await db.execute(select(OrganizationMember).where(OrganizationMember.org_id == org_id))
+        members = result.scalars().all()
+        
+        if not members:
+            raise HTTPException(status_code=404, detail="Organization has no members")
+            
+        return members
+
+
+
     async def get_member(self, org_id: UUID, member_id: UUID, db: AsyncSession):
         result = await db.execute(
             select(OrganizationMember).where(
                 OrganizationMember.org_id == org_id,
-                OrganizationMember.id == member_id
+                OrganizationMember.id == member_id 
             )
         )
         member = result.scalar_one_or_none()
