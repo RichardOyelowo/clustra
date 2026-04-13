@@ -1,5 +1,5 @@
-from ..schemas import OrganizationCreate, OrganizationResponse, OrganizationUpdate
 from ..schemas import OrganizationMemberCreate, OrganizationMemberResponse
+from ..schemas import OrganizationCreate, OrganizationResponse
 from ..models import Organization, OrganizationMember
 from ..utils.normalization import normalize_payloads
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,13 +12,14 @@ class OrgService:
     service class for organization routes operations
     """
 
-    async def create_org(self, data: OrganizationCreate, db: AsyncSession):
+    async def create_org(self, data: OrganizationCreate, current_user: UUID, db: AsyncSession):
         result = await db.execute(select(Organization).where(Organization.slug == data.slug))
         existing = result.scalar_one_or_none()
 
         if existing:
             return []
 
+        data["owner_id"] = current_user
         data_dict = normalize_payloads(data.model_dump())
         org = Organization(**data_dict)
 

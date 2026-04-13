@@ -23,7 +23,6 @@ class OrganizationUpdate(BaseModel):
     id : uuid.UUID | None = None
     name: str | None = None
     slug: str | None = None
-    owner_id: uuid.UUID | None = None
     desc: str | None = None
 
 
