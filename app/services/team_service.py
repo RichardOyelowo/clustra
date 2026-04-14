@@ -1,3 +1,4 @@
+from app.models import team
 from ..schemas import TeamCreate, TeamResponse, TeamUpdate
 from ..schemas import TeamMemberCreate, TeamMemberResponse
 from ..models import Team, TeamMember
@@ -31,6 +32,17 @@ class TeamService:
 
         return team
 
+    
+    async def get_teams(self, org_id: UUID, db: AsyncSession):
+        result = await db.execute(select(Team).where(Team.org_id == org_id))
+        teams = result.scalars().all()
+
+        if not teams:
+            return []
+
+        return teams
+
+ 
     async def get_team(self, team_id: UUID, db: AsyncSession):
         result = await db.execute(select(Team).where(Team.id == team_id))
         team = result.scalar_one_or_none()
