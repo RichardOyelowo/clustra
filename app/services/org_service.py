@@ -17,10 +17,10 @@ class OrgService:
         existing = result.scalar_one_or_none()
 
         if existing:
-            return []
-
-        data["owner_id"] = current_user
+            raise HTTPException(status_code=404, detail="Organization already exists")
+  
         data_dict = normalize_payloads(data.model_dump())
+        data_dict["owner_id"] = current_user #type ignore
         org = Organization(**data_dict)
 
         db.add(org)
@@ -103,8 +103,8 @@ class OrgService:
         members = result.scalars().all()
         
         if not members:
-            raise HTTPException(status_code=404, detail="Organization has no members")
-            
+            return []
+
         return members
 
 
