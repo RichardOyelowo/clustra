@@ -1,5 +1,5 @@
+from ..schemas import OrganizationCreate, OrganizationResponse, OrganizationUpdate
 from ..schemas import OrganizationMemberCreate, OrganizationMemberResponse
-from ..schemas import OrganizationCreate, OrganizationResponse
 from ..models import Organization, OrganizationMember
 from ..utils.normalization import normalize_payloads
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,10 +17,11 @@ class OrgService:
         existing = result.scalar_one_or_none()
 
         if existing:
-            raise HTTPException(status_code=404, detail="Organization already exists")
+            raise HTTPException(status_code=409, detail="Organization already exists")
   
-        data_dict = normalize_payloads(data.model_dump())
-        data_dict["owner_id"] = current_user #type ignore
+        data_dict = data.model_dump()
+        data_dict["owner_id"] = current_user
+        data_dict = normalize_payloads(data_dict)
         org = Organization(**data_dict)
 
         db.add(org)
