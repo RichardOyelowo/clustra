@@ -13,13 +13,15 @@ class ActivityType(str, enum.Enum):
 
 
 class ModelType(str, enum.Enum):
-    ORGANIZATION = "organization" 
-    ORGANIZATION_MEMBER = "organization_member"
-    USER = "user"
-    TEAM = "team"
-    PROJECT = "project"
-    TASK = "task"
-    MILESTONE = "milestone"
+    ORGANIZATIONS = "organizations" 
+    ORGANIZATION_MEMBERS = "organization_members"
+    USERS = "users"
+    TEAMS = "teams"
+    TEAMMEMBERS = "teammembers"
+    PROJECTS = "projects"
+    TASKS = "tasks"
+    TASKLABELS = "tasklabels"
+    MILESTONEs = "milestones"
 
 
 class Activity(Base, TimeStamp):
