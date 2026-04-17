@@ -157,17 +157,24 @@ class LabelService:
 
 
     async def delete_task_label(self, task_label_id: UUID, db: AsyncSession) -> dict:
-        result = await db.execute(select(TaskLabel).where(TaskLabel.id == task_label_id))
-        task_label = result.scalar_one_or_none()
-        if not task_label:
-            raise HTTPException(status_code=404, detail="Task Label doesn't exist")
+        try:
+            result = await db.execute(select(TaskLabel).where(TaskLabel.id == task_label_id))
+            task_label = result.scalar_one_or_none()
+            if not task_label:
+                raise HTTPException(status_code=404, detail="Task Label doesn't exist")
 
-        await db.delete(task_label)
-        await db.commit()
-        return {"message": "Task label deleted successfully"}
+            await db.delete(task_label)
+            await db.commit()
+
+            return {"message": "Task label deleted successfully"}
+        except Exception as e:
+            await db.rollback()
+            raise e
 
 
     async def get_task_labels_by_label(self, label_id: UUID, db: AsyncSession) -> List[TaskLabel]:
         result = await db.execute(select(TaskLabel).where(TaskLabel.label_id == label_id))
         task_labels = result.scalars().all()
+
         return task_labels
+
