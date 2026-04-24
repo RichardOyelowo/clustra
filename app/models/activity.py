@@ -21,7 +21,7 @@ class ModelType(str, enum.Enum):
     PROJECTS = "projects"
     TASKS = "tasks"
     TASKLABELS = "tasklabels"
-    MILESTONEs = "milestones"
+    MILESTONES = "milestones"
 
 
 class Activity(Base, TimeStamp):
