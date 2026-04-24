@@ -12,10 +12,16 @@ class MilestoneCreate(BaseModel):
     due_date: date | None = None
 
 
+class MilestoneUpdate(BaseModel):
+    title: str | None = None
+    status: MilestoneStatus | None = None
+    due_date: date | None = None
+
+
 class MilestoneResponse(BaseResponse):
     id: uuid.UUID
     title: str
     proj_id: uuid.UUID
     status: MilestoneStatus
     due_date: date | None
-    
+
