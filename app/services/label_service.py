@@ -156,6 +156,31 @@ class LabelService:
         return task_label
 
 
+    async def edit_task_label(self, task_label_id: UUID, data: TaskLabelCreate, db: AsyncSession) -> TaskLabel:
+        try:
+            result = await db.execute(select(TaskLabel).where(TaskLabel.id == task_label_id))
+            task_label = result.scalar_one_or_none()
+
+            if not task_label:
+                raise HTTPException(status_code=404, detail="Task Label doesn't exist")
+
+            data_dict = data.model_dump(exclude_unset=True)
+            if not data_dict:
+                return task_label
+
+            updated_data = normalize_payloads(data_dict)
+            for field, value in updated_data.items():
+                setattr(task_label, field, value)
+
+            await db.commit()
+            await db.refresh(task_label)
+
+            return task_label
+        except Exception as e:
+            await db.rollback()
+            raise e
+
+
     async def delete_task_label(self, task_label_id: UUID, db: AsyncSession) -> dict:
         try:
             result = await db.execute(select(TaskLabel).where(TaskLabel.id == task_label_id))
