@@ -1,6 +1,7 @@
 from ..schemas import ActivityCreate, ActivityResponse
 from ..utils.normalization import normalize_payloads
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 from ..models import Activity
 from sqlalchemy import select
 from uuid import UUID
@@ -35,7 +36,8 @@ class ActivityService:
         result = await db.execute(select(Activity).where(Activity.id == activity_id))
         activity = result.scalar_one_or_none()
 
-        if not activity: return []
+        if not activity:
+            raise HTTPException(status_code=404, detail="Activity not found")
 
         return activity
 
@@ -43,6 +45,9 @@ class ActivityService:
     async def delete_activity(self, activity_id: UUID, db: AsyncSession):
         result = await db.execute(select(Activity).where(Activity.id == activity_id))
         activity = result.scalar_one_or_none()
+
+        if not activity:
+            raise HTTPException(status_code=404, detail="Activity not found")
 
         await db.delete(activity)
         await db.commit()
