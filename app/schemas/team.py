@@ -11,6 +11,12 @@ class TeamCreate(BaseModel):
     desc: str | None = None
 
 
+class TeamUpdate(BaseModel):
+    name: str | None = None
+    slug: str | None = None
+    desc: str | None = None
+
+
 class TeamResponse(BaseResponse):
     id: uuid.UUID
     name: str
@@ -20,7 +26,7 @@ class TeamResponse(BaseResponse):
 
 class TeamMemberCreate(BaseModel):
     user_id: uuid.UUID
-    role: TeamRole = TeamRole.CONTRIBUTOR 
+    role: TeamRole = TeamRole.CONTRIBUTOR
 
 
 class TeamMemberResponse(BaseResponse):
