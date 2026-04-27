@@ -9,6 +9,12 @@ class ProjectCreate(BaseModel):
     team_id: uuid.UUID
 
 
+class ProjectUpdate(BaseModel):
+    name: str | None = None
+    desc: str | None = None
+    status: ProjectStatus | None = None
+
+
 class ProjectResponse(BaseResponse):
     id: uuid.UUID
     name: str
