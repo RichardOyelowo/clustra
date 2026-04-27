@@ -15,6 +15,15 @@ class TaskCreate(BaseModel):
     due_date: date | None = None
 
 
+class TaskUpdate(BaseModel):
+    name: str | None = None
+    desc: str | None = None
+    status: TaskStatus | None = None
+    priority: TaskPriority | None = None
+    assignee_id: uuid.UUID | None = None
+    due_date: date | None = None
+
+
 class TaskResponse(BaseResponse):
     id: uuid.UUID
     name: str
