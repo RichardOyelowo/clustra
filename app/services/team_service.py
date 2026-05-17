@@ -1,4 +1,3 @@
-from app.models import team
 from ..schemas import TeamCreate, TeamResponse, TeamUpdate
 from ..schemas import TeamMemberCreate, TeamMemberResponse
 from ..models import Team, TeamMember
