@@ -78,4 +78,3 @@ class ProjectService:
         await db.delete(project)
         await db.commit()
         return {"message": "Project deleted successfully"}
-
