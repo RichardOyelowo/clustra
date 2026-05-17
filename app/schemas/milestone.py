@@ -24,4 +24,3 @@ class MilestoneResponse(BaseResponse):
     proj_id: uuid.UUID
     status: MilestoneStatus
     due_date: date | None
-
