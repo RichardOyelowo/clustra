@@ -1,12 +1,18 @@
-from ..schemas import TaskLabelCreate, TaskLabelResponse, TaskLabelUpdate
-from ..schemas import LabelCreate, LabelResponse, LabelUpdate
-from ..utils.normalization import normalize_payloads
-from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import Label, TaskLabel
-from fastapi import HTTPException
-from sqlalchemy import select
 from typing import List
 from uuid import UUID
+
+from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..models import Label, TaskLabel
+from ..schemas import (
+    LabelCreate,
+    LabelUpdate,
+    TaskLabelCreate,
+    TaskLabelUpdate,
+)
+from ..utils.normalization import normalize_payloads
 
 
 class LabelService:
@@ -17,10 +23,9 @@ class LabelService:
     # ---------------- Project Label ------------------
 
     async def create_label(self, data: LabelCreate, db: AsyncSession) -> Label:
-        result = await db.execute(select(Label).where(
-            Label.name == data.name,
-            Label.proj_id == data.proj_id
-        ))
+        result = await db.execute(
+            select(Label).where(Label.name == data.name, Label.proj_id == data.proj_id)
+        )
         existing = result.scalar_one_or_none()
 
         if existing:
@@ -34,19 +39,16 @@ class LabelService:
 
         return label
 
-
     async def get_labels(self, proj_id: UUID, db: AsyncSession) -> List[Label]:
         result = await db.execute(select(Label).where(Label.proj_id == proj_id))
         labels = result.scalars().all()
 
         return labels
 
-
     async def get_label(self, label_id: UUID, proj_id: UUID, db: AsyncSession) -> Label:
-        result = await db.execute(select(Label).where(
-            Label.id == label_id,
-            Label.proj_id == proj_id
-        ))
+        result = await db.execute(
+            select(Label).where(Label.id == label_id, Label.proj_id == proj_id)
+        )
         label = result.scalar_one_or_none()
 
         if not label:
@@ -54,12 +56,12 @@ class LabelService:
 
         return label
 
-
-    async def edit_label(self, label_id: UUID, data: LabelUpdate, db: AsyncSession) -> Label:
-        result = await db.execute(select(Label).where(
-            Label.id == label_id,
-            Label.proj_id == data.proj_id
-        ))
+    async def edit_label(
+        self, label_id: UUID, data: LabelUpdate, db: AsyncSession
+    ) -> Label:
+        result = await db.execute(
+            select(Label).where(Label.id == label_id, Label.proj_id == data.proj_id)
+        )
         label = result.scalar_one_or_none()
 
         if not label:
@@ -78,12 +80,12 @@ class LabelService:
 
         return label
 
-
-    async def delete_label(self, label_id: UUID, proj_id: UUID, db: AsyncSession) -> dict:
-        result = await db.execute(select(Label).where(
-            Label.id == label_id,
-            Label.proj_id == proj_id
-        ))
+    async def delete_label(
+        self, label_id: UUID, proj_id: UUID, db: AsyncSession
+    ) -> dict:
+        result = await db.execute(
+            select(Label).where(Label.id == label_id, Label.proj_id == proj_id)
+        )
         label = result.scalar_one_or_none()
 
         if not label:
@@ -94,14 +96,16 @@ class LabelService:
 
         return {"message": "label deleted successfully"}
 
-
     # ------------------ Task Label ---------------------
 
-    async def create_task_label(self, data: TaskLabelCreate, db: AsyncSession) -> TaskLabel:
-        result = await db.execute(select(TaskLabel).where(
-            TaskLabel.label_id == data.label_id,
-            TaskLabel.task_id == data.task_id
-        ))
+    async def create_task_label(
+        self, data: TaskLabelCreate, db: AsyncSession
+    ) -> TaskLabel:
+        result = await db.execute(
+            select(TaskLabel).where(
+                TaskLabel.label_id == data.label_id, TaskLabel.task_id == data.task_id
+            )
+        )
         existing = result.scalar_one_or_none()
         if existing:
             raise HTTPException(status_code=409, detail="Task Label already exists")
@@ -114,16 +118,16 @@ class LabelService:
 
         return task_label
 
-
     async def get_task_labels(self, task_id: UUID, db: AsyncSession) -> List[TaskLabel]:
         result = await db.execute(select(TaskLabel).where(TaskLabel.task_id == task_id))
         task_labels = result.scalars().all()
 
         return task_labels
 
-
     async def get_task_label(self, task_label_id: UUID, db: AsyncSession) -> TaskLabel:
-        result = await db.execute(select(TaskLabel).where(TaskLabel.id == task_label_id))
+        result = await db.execute(
+            select(TaskLabel).where(TaskLabel.id == task_label_id)
+        )
         task_label = result.scalar_one_or_none()
 
         if not task_label:
@@ -131,9 +135,12 @@ class LabelService:
 
         return task_label
 
-
-    async def edit_task_label(self, task_label_id: UUID, data: TaskLabelUpdate, db: AsyncSession) -> TaskLabel:
-        result = await db.execute(select(TaskLabel).where(TaskLabel.id == task_label_id))
+    async def edit_task_label(
+        self, task_label_id: UUID, data: TaskLabelUpdate, db: AsyncSession
+    ) -> TaskLabel:
+        result = await db.execute(
+            select(TaskLabel).where(TaskLabel.id == task_label_id)
+        )
         task_label = result.scalar_one_or_none()
 
         if not task_label:
@@ -152,9 +159,10 @@ class LabelService:
 
         return task_label
 
-
     async def delete_task_label(self, task_label_id: UUID, db: AsyncSession) -> dict:
-        result = await db.execute(select(TaskLabel).where(TaskLabel.id == task_label_id))
+        result = await db.execute(
+            select(TaskLabel).where(TaskLabel.id == task_label_id)
+        )
         task_label = result.scalar_one_or_none()
         if not task_label:
             raise HTTPException(status_code=404, detail="Task Label doesn't exist")
@@ -164,10 +172,12 @@ class LabelService:
 
         return {"message": "Task label deleted successfully"}
 
-
-    async def get_task_labels_by_label(self, label_id: UUID, db: AsyncSession) -> List[TaskLabel]:
-        result = await db.execute(select(TaskLabel).where(TaskLabel.label_id == label_id))
+    async def get_task_labels_by_label(
+        self, label_id: UUID, db: AsyncSession
+    ) -> List[TaskLabel]:
+        result = await db.execute(
+            select(TaskLabel).where(TaskLabel.label_id == label_id)
+        )
         task_labels = result.scalars().all()
 
         return task_labels
-
