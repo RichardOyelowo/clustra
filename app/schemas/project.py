@@ -21,4 +21,3 @@ class ProjectResponse(BaseResponse):
     desc: str | None
     team_id: uuid.UUID
     status: ProjectStatus
-
