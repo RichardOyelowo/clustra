@@ -1,10 +1,20 @@
-def normalize_payloads(data):
-    """ this coverts dicts values to lowercase"""
-    if isinstance(data, dict):
-        return {k: normalize_payloads(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [normalize_payloads(item) for item in data]
-    elif isinstance(data, str):
-        return data.lower()
-    else:
-        return data  # explicitly leave ints, bools,  etc.
+from typing import Any
+
+def normalize_payloads(data: dict[str, Any]) -> dict[str, Any]:
+    """Converts string values in nested dicts/lists to lowercase."""
+    return {
+        key: _normalize_value(value)
+        for key, value in data.items()
+    }
+
+def _normalize_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            str(k): _normalize_value(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_normalize_value(item) for item in value]
+    if isinstance(value, str):
+        return value.lower()
+    return value
