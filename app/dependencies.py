@@ -1,4 +1,5 @@
-from gatevault import InvalidTokenError, TokenDecodeError, TokenExpiredError
+from gatevault import TokenDecodeError, TokenExpiredError
+from gatevault import OAuthHandler, InvalidTokenError 
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, Depends
@@ -8,6 +9,15 @@ from app.models import User
 from .extensions import tm
 
 Oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
+async def get_oauth(db: AsyncSession = Depends(db_session)) -> OAuthHandler:
+    async def get_user(email: str):
+        lower_email = email.lower()
+        result = await db.execute(select(User).where(User.email == lower_email))
+        return result.scalar_one_or_none()
+    
+    return OAuthHandler(token_manager=tm, get_user=get_user)
 
 
 async def validate_user(
