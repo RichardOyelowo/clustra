@@ -51,7 +51,7 @@ class OrgService:
         if not member:
             raise HTTPException(status_code=403, detail="You are not a member of this Organization")
         
-        if member.role not in allowed_role:
+        if member.role not in allowed_roles:
             raise HTTPException(status_code=403, detail="You don't have permission to perform this action")
 
         return member
@@ -227,6 +227,9 @@ class OrgService:
             )
         )
         member = result.scalar_one_or_none()
+
+        if not member:
+            raise HTTPException(status_code=404, detail="Member not found")
 
         return member
 
