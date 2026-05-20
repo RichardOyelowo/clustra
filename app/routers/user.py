@@ -10,13 +10,13 @@ user_router = APIRouter(prefix="/user")
 user_service = UserService()
 
 
-@user_router.get("/me")
+@user_router.get("/me", response_model=UserResponse)
 async def get_user(current_user = Depends(validate_user)) -> UserResponse:
     return current_user
 
 
-@user_router.patch("/{id}")
-async def edit_user(id: uuid.UUID, data: UserUpdate, db: AsyncSession = Depends(db_session), current_user=Depends(validate_user)):
+@user_router.patch("/{id}", response_model=UserResponse)
+async def update_user(id: uuid.UUID, data: UserUpdate, db: AsyncSession = Depends(db_session), current_user=Depends(validate_user)):
     return await user_service.edit_user(id, data, db)
 
 
