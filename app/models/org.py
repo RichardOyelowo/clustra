@@ -1,6 +1,6 @@
-from sqlalchemy import ForeignKey, String, DateTime, UniqueConstraint
+from sqlalchemy import ForeignKey, String, DateTime, UniqueConstraint, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, ENUM
+from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime, timezone
 from .base import Base, TimeStamp
 import uuid

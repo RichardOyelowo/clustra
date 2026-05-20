@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, String, DateTime
+from sqlalchemy import ForeignKey, String, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime, timezone
 from .base import Base, TimeStamp
@@ -7,7 +7,7 @@ import uuid
 import enum
 
 
-class TeamRole(str, enum.Enum):
+class TeamMemberRole(str, enum.Enum):
     VIEWER = "viewer"
     CONTRIBUTOR = "contributor"
     LEAD = "lead"
@@ -44,7 +44,7 @@ class TeamMember(Base):
     )
     team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
-    role: Mapped[TeamRole] = mapped_column(String(100), default="contributor")
+    role: Mapped[TeamMemberRole] = mapped_column(Enum(TeamMemberRole), default="contributor")
     joined_at: Mapped[datetime] = mapped_column(DateTime,default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self) -> str:

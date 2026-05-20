@@ -10,7 +10,7 @@ from .milestone import Milestone, MilestoneStatus
 from .org import Organization, OrganizationMember, OrganizationMemberRole
 from .project import Project, ProjectStatus
 from .task import Task, TaskPriority, TaskStatus
-from .team import Team, TeamMember, TeamRole
+from .team import Team, TeamMember, TeamMemberRole
 from .user import User
 
 __all__ = [
@@ -22,7 +22,7 @@ __all__ = [
     "TaskStatus",
     "Team",
     "TeamMember",
-    "TeamRole",
+    "TeamMemberRole",
     "Milestone",
     "MilestoneStatus",
     "Activity",
