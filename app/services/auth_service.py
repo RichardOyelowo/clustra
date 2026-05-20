@@ -1,10 +1,9 @@
 from gatevault import InvalidCredentialsError, UnauthorizedError, GuardError
-from gatevault import OAuthHandler, hash_password
+from gatevault import hash_password, OAuthHandler
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from ..schemas import UserCreate
 from sqlalchemy import select
-from ..extensions import tm
 from ..models import User
 
 class AuthService:
@@ -33,13 +32,7 @@ class AuthService:
         return new_user
 
 
-    async def login(self, email: str, password: str, db: AsyncSession):
-        async def get_user(email: str):
-            lower_email = email.lower()
-            result = await db.execute(select(User).where(User.email == lower_email))
-            return result.scalar_one_or_none()
-
-        oauth = OAuthHandler(token_manager = tm, get_user = get_user)
+    async def login(self, email: str, password: str, oauth: OAuthHandler):
         try:
             tokens = await oauth.async_login(email, password)
         except InvalidCredentialsError:

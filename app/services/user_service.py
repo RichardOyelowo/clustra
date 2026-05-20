@@ -12,7 +12,7 @@ class UserService:
         service class for user routes operations
     """
 
-    async def get_user(self, user_id: UUID, db: AsyncSession) -> UserResponse:
+    async def get_user(self, user_id: UUID, db: AsyncSession):
         """ retrieve a user by their id """
 
         result = await db.execute(select(User).where(User.id == user_id))
@@ -24,7 +24,7 @@ class UserService:
         return user
 
 
-    async def edit_user(self, user_id: UUID, update_data: UserUpdate, db: AsyncSession) -> UserResponse:
+    async def edit_user(self, user_id: UUID, update_data: UserUpdate, db: AsyncSession):
         """ update User details """
         
         result = await db.execute(select(User).where(User.id == user_id))
