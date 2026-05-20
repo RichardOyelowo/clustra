@@ -1,6 +1,6 @@
+from sqlalchemy import ForeignKey, String, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, String, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ENUM
 from datetime import datetime, timezone
 from .base import Base, TimeStamp
 import uuid
@@ -14,6 +14,9 @@ class OrganizationMemberRole(str, enum.Enum):
     
 class Organization(Base, TimeStamp):
     __tablename__ = "organizations"
+    __table_args__ = (
+        UniqueConstraint("slug", name="uq_organization_slug")
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
             UUID(as_uuid=True), 
@@ -33,6 +36,9 @@ class Organization(Base, TimeStamp):
 
 class OrganizationMember(Base):
     __tablename__ = "organizationmembers"
+    __table_args__ = (
+        UniqueConstraint("org_id", "user_id", name="uq_org_member_user")
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
             UUID(as_uuid=True), 
@@ -43,7 +49,7 @@ class OrganizationMember(Base):
     )
     org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
-    role: Mapped[OrganizationMemberRole] = mapped_column(String(100), default="member", nullable=False)
+    role: Mapped[OrganizationMemberRole] = mapped_column(ENUM(OrganizationMemberRole), default=OrganizationMemberRole.MEMBER, nullable=False)
     joined_at: Mapped[datetime] = mapped_column(DateTime,default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self) -> str:
