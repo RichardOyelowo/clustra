@@ -1,5 +1,6 @@
 from ..models import Organization, OrganizationMember, OrganizationMemberRole
-from ..utils.normalization import normalize_payloads
+from ..utils import ORG_ANY_ROLES, ORG_ADMIN_ROLES, ORG_OWNER_ROLES
+from ..utils import normalize_payloads, check_org_membership
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -13,50 +14,9 @@ from ..schemas import (
 
 class OrgService:
     """
-    service class for organization routes operations
+        service class for organization routes operations
     """
-    # --- roles ---
-    ORG_VIEW_ROLES = {
-        OrganizationMemberRole.OWNER,
-        OrganizationMemberRole.ADMIN,
-        OrganizationMemberRole.MEMBER,
-    }
-    ORG_ADMIN_ROLES = {
-        OrganizationMemberRole.OWNER,
-        OrganizationMemberRole.ADMIN,
-    }
-    ORG_OWNER_ROLES = {
-        OrganizationMemberRole.OWNER,
-    }
-
-    # validates user authorization
-    async def _get_member_role(
-            self,
-            org_id: UUID, 
-            current_user: UUID,
-            allowed_roles: set[OrganizationMemberRole],
-            db: AsyncSession
-    ):
-        """
-        verifies the authorization of the user
-        """
-        result = await db.execute(select(OrganizationMember).where(
-                OrganizationMember.user_id == current_user,
-                OrganizationMember.org_id == org_id
-            )
-        )
-
-        member = result.scalar_one_or_none()
-
-        if not member:
-            raise HTTPException(status_code=403, detail="You are not a member of this Organization")
-        
-        if member.role not in allowed_roles:
-            raise HTTPException(status_code=403, detail="You don't have permission to perform this action")
-
-        return member
-
-
+    
     async def create_org(
             self, 
             current_user: UUID,  
@@ -98,7 +58,7 @@ class OrgService:
             current_user: UUID, 
             db: AsyncSession
     ):
-        await self._get_member_role(org_id, current_user, self.ORG_VIEW_ROLES, db)
+        await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
         result = await db.execute(select(Organization).where(Organization.id == org_id))
         org = result.scalar_one_or_none()
@@ -116,7 +76,7 @@ class OrgService:
             data: OrganizationUpdate, 
             db: AsyncSession
     ):
-        await self._get_member_role(org_id, current_user, self.ORG_ADMIN_ROLES, db)
+        await check_org_membership(org_id, current_user, ORG_ADMIN_ROLES, db)
 
         result = await db.execute(select(Organization).where(Organization.id == org_id))
         org = result.scalar_one_or_none()
@@ -139,7 +99,7 @@ class OrgService:
             current_user: UUID, 
             db: AsyncSession
     ):
-        await self._get_member_role(org_id, current_user, self.ORG_OWNER_ROLES, db)
+        await check_org_membership(org_id, current_user, ORG_OWNER_ROLES, db)
 
         result = await db.execute(select(Organization).where(Organization.id == org_id))
         org = result.scalar_one_or_none()
@@ -159,7 +119,7 @@ class OrgService:
             data: OrganizationMemberCreate, 
             db: AsyncSession
     ):
-        await self._get_member_role(org_id, current_user, self.ORG_ADMIN_ROLES, db)
+        await check_org_membership(org_id, current_user, ORG_ADMIN_ROLES, db)
         
         org_result = await db.execute(
             select(Organization).where(Organization.id == org_id)
@@ -199,7 +159,7 @@ class OrgService:
             current_user: UUID,    
             db: AsyncSession
     ):
-        await self._get_member_role(org_id, current_user, self.ORG_VIEW_ROLES, db)
+        await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
         result = await db.execute(
             select(OrganizationMember).where(OrganizationMember.org_id == org_id)
@@ -219,7 +179,7 @@ class OrgService:
             current_user: UUID,
             db: AsyncSession
     ):
-        await self._get_member_role(org_id, current_user, self.ORG_VIEW_ROLES, db)
+        await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
         result = await db.execute(
             select(OrganizationMember).where(
@@ -241,7 +201,7 @@ class OrgService:
             current_user: UUID,
             db: AsyncSession
     ):
-        await self._get_member_role(org_id, current_user, self.ORG_ADMIN_ROLES, db)
+        await check_org_membership(org_id, current_user, ORG_ADMIN_ROLES, db)
 
         result = await db.execute(
             select(OrganizationMember).where(
