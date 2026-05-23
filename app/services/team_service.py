@@ -1,8 +1,9 @@
-from ..schemas import TeamCreate, TeamResponse, TeamUpdate
-from ..schemas import TeamMemberCreate, TeamMemberResponse
-from ..models import Team, TeamMember
-from ..utils.normalization import normalize_payloads
+from ..utils import check_org_membership, check_team_membership, normalize_payloads
+from ..schemas import TeamCreate, TeamUpdate, TeamMemberCreate
+from ..utils import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES
+from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from sqlalchemy.ext.asyncio import AsyncSession
+from ..models import Team, TeamMember
 from fastapi import HTTPException
 from sqlalchemy import select
 from uuid import UUID
@@ -11,18 +12,20 @@ class TeamService:
     """
     Service class for team routes operations
     """
+    async def create_team(self, org_id: UUID, data: TeamCreate, current_user: UUID, db: AsyncSession):
+        # must belong in an organization to be in or create teams
+        await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
-    async def create_team(self, data: TeamCreate, current_user: UUID, db: AsyncSession):
-        result = await db.execute(select(Team).where(
-            Team.name == data.name,
-            Team.org_id == data.org_id))
+        result = await db.execute(
+            select(Team).where(Team.name == data.name,Team.org_id == org_id)
+        )
+
         existing = result.scalar_one_or_none()
-
         if existing:
             raise HTTPException(status_code=409, detail="Team already exists")
 
         data_dict = normalize_payloads(data.model_dump())
-        data_dict["created_by"] = current_user  # type: ignore
+        data_dict["created_by"] = current_user
         team = Team(**data_dict)
 
         db.add(team)
@@ -32,18 +35,35 @@ class TeamService:
         return team
 
     
-    async def get_teams(self, org_id: UUID, db: AsyncSession):
-        result = await db.execute(select(Team).where(Team.org_id == org_id))
-        teams = result.scalars().all()
+    async def get_teams(self, org_id: UUID, current_user: UUID, db: AsyncSession):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+        teams = []
 
-        if not teams:
-            return []
+        if org_member.role not in ORG_ADMIN_ROLES:
+            # gets all teams in organization
+            result = await db.execute(
+                select(Team).where(Team.org_id == org_id)
+            )
+            teams = result.scalars().all()
+        else:
+            # gets teams with membership only
+            result = await db.execute(
+                select(Team)
+                .join(TeamMember, TeamMember.team_id == Team.id)
+                .where(Team.org_id == org_id, TeamMember.user_id == current_user)
+            )
+            teams = result.scalars().all()
 
         return teams
 
  
-    async def get_team(self, team_id: UUID, db: AsyncSession):
-        result = await db.execute(select(Team).where(Team.id == team_id))
+    async def get_team(self, org_id: UUID, team_id: UUID, current_user: UUID, db: AsyncSession):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+
+        if org_member.role in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
+
+        result = await db.execute(select(Team).where(Team.id == team_id, Team.org_id == org_id))
         team = result.scalar_one_or_none()
         
         if not team:
@@ -51,7 +71,13 @@ class TeamService:
             
         return team
 
-    async def edit_team(self, team_id: UUID, data: TeamUpdate, db: AsyncSession):
+
+    async def edit_team(self, org_id: UUID, team_id: UUID, data: TeamUpdate, current_user: UUID, db: AsyncSession):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
+
         result = await db.execute(select(Team).where(Team.id == team_id))
         team = result.scalar_one_or_none()
         
@@ -64,9 +90,12 @@ class TeamService:
             
         await db.commit()
         await db.refresh(team)
+
         return team
 
-    async def delete_team(self, team_id: UUID, db: AsyncSession):
+    async def delete_team(self, org_id: UUID, team_id: UUID, current_user: UUID, db: AsyncSession):
+        await check_org_membership(org_id, current_user, ORG_ADMIN_ROLES, db)
+
         result = await db.execute(select(Team).where(Team.id == team_id))
         team = result.scalar_one_or_none()
         
@@ -77,8 +106,13 @@ class TeamService:
         await db.commit()
         return {"message": "Team deleted successfully"}
 
-    async def add_member(self, team_id: UUID, data: TeamMemberCreate, db: AsyncSession):
-        # First check if team exists
+
+    async def add_member(self, org_id: UUID, team_id: UUID, data: TeamMemberCreate, current_user: UUID, db: AsyncSession):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
+
         team_result = await db.execute(select(Team).where(Team.id == team_id))
         team = team_result.scalar_one_or_none()
         
@@ -97,25 +131,34 @@ class TeamService:
         if existing_member:
             raise HTTPException(status_code=409, detail="Member already exists in team")
             
-        # Create new member
         member_data = normalize_payloads(data.model_dump())
         member = TeamMember(**member_data, team_id=team_id)
         
         db.add(member)
         await db.commit()
         await db.refresh(member)
+
         return member
 
-    async def get_members(self, team_id: UUID, db: AsyncSession):
+
+    async def get_members(self, org_id: UUID, team_id: UUID, current_user: UUID, db: AsyncSession):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
+
         result = await db.execute(select(TeamMember).where(TeamMember.team_id == team_id))
         members = result.scalars().all()
         
-        if not members:
-            return []
-
         return members
 
-    async def get_member(self, team_id: UUID, member_id: UUID, db: AsyncSession):
+
+    async def get_member(self, org_id: UUID, team_id: UUID, member_id: UUID, current_user: UUID, db: AsyncSession):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
+
         result = await db.execute(
             select(TeamMember).where(
                 TeamMember.team_id == team_id,
@@ -129,7 +172,13 @@ class TeamService:
             
         return member
 
-    async def remove_member(self, team_id: UUID, member_id: UUID, db: AsyncSession):
+
+    async def remove_member(self, org_id: UUID, team_id: UUID, member_id: UUID, current_user: UUID, db: AsyncSession):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+        
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
+
         result = await db.execute(
             select(TeamMember).where(
                 TeamMember.team_id == team_id,
@@ -144,3 +193,4 @@ class TeamService:
         await db.delete(member)
         await db.commit()
         return {"message": "Member removed successfully"}
+
