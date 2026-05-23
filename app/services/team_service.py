@@ -72,7 +72,7 @@ class TeamService:
         return team
 
 
-    async def edit_team(self, org_id: UUID, team_id: UUID, data: TeamUpdate, current_user: UUID, db: AsyncSession):
+    async def update_team(self, org_id: UUID, team_id: UUID, data: TeamUpdate, current_user: UUID, db: AsyncSession):
         org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
         if org_member.role not in ORG_ADMIN_ROLES:
