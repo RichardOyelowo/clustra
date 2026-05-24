@@ -26,6 +26,7 @@ class Project(Base, TimeStamp):
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     desc: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
     org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
     status: Mapped[ProjectStatus] = mapped_column(String, default="pending", nullable=False)
