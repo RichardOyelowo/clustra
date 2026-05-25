@@ -25,7 +25,7 @@ TEAM_VIEW_ROLES = {
     TeamMemberRole.CONTRIBUTOR,
     TeamMemberRole.VIEWER,
 }
-TEAM_CONTRIBUTION_ROLE = {
+TEAM_CONTRIBUTION_ROLES = {
     TeamMemberRole.LEAD,
     TeamMemberRole.CONTRIBUTOR
 }
