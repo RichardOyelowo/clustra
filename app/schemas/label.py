@@ -32,7 +32,3 @@ class TaskLabelResponse(BaseResponse):
     label_id: UUID
     task_id: UUID
 
-
-class TaskLabelUpdate(BaseModel):
-    label_id: UUID | None = None
-    task_id: UUID | None = None
