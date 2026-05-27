@@ -18,7 +18,9 @@ class Label(Base, TimeStamp):
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     color: Mapped[str] = mapped_column(String, nullable=False)
-    proj_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("projects.id"))
+    proj_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
+    team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
+    org_id: Mapped[uuid.UUID] =  mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
 
 
 class TaskLabel(Base, TimeStamp):
