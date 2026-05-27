@@ -6,7 +6,6 @@ from uuid import UUID
 class LabelCreate(BaseModel):
     name: str
     color: str
-    proj_id: UUID
 
 
 class LabelResponse(BaseResponse):
@@ -14,16 +13,16 @@ class LabelResponse(BaseResponse):
     name: str
     color: str
     proj_id: UUID
+    team_id: UUID
+    org_id: UUID
 
 
 class LabelUpdate(BaseModel):
     name: str | None = None
     color: str | None = None
-    proj_id: UUID | None = None
 
 
 class TaskLabelCreate(BaseModel):
-    label_id: UUID
     task_id: UUID
 
 
