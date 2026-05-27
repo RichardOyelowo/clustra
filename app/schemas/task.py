@@ -10,7 +10,6 @@ class TaskCreate(BaseModel):
     desc: str | None = None
     status: TaskStatus = TaskStatus.PENDING
     priority: TaskPriority = TaskPriority.LOW
-    proj_id: uuid.UUID
     assignee_id: uuid.UUID | None = None
     due_date: date | None = None
 
@@ -31,5 +30,7 @@ class TaskResponse(BaseResponse):
     status: TaskStatus
     priority: TaskPriority
     proj_id: uuid.UUID
+    team_id: uuid.UUID
+    org_id: uuid.UUID
     assignee_id: uuid.UUID | None
     due_date: date | None
