@@ -21,12 +21,14 @@ class ProjectService:
         current_user: UUID,
         db: AsyncSession
     ):
-        await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
-        await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
 
         result = await db.execute(
             select(Project).where(
-                Project.name == data.name, Project.team_id == data.team_id
+                Project.name == data.name, Project.team_id == team_id
             )
         )
         existing = result.scalar_one_or_none()
