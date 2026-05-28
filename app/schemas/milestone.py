@@ -7,7 +7,6 @@ import uuid
 
 class MilestoneCreate(BaseModel):
     title: str
-    proj_id: uuid.UUID
     status: MilestoneStatus = MilestoneStatus.PENDING
     due_date: date | None = None
 
