@@ -1,10 +1,12 @@
-from ..schemas import MilestoneCreate, MilestoneResponse, MilestoneUpdate
-from ..utils.normalization import normalize_payloads
+from ..utils import check_org_membership, check_team_membership
+from ..schemas import MilestoneCreate, MilestoneUpdate
+from ..utils import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES
+from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import Milestone
+from ..utils import normalize_payloads
 from fastapi import HTTPException
+from ..models import Milestone
 from sqlalchemy import select
-from typing import List
 from uuid import UUID
 
 
@@ -13,17 +15,38 @@ class MilestoneService:
     service class for milestone route related operations
     """
 
-    async def create_milestone(self, data: MilestoneCreate, db: AsyncSession) -> Milestone:
-        result = await db.execute(select(Milestone).where(
-            Milestone.title == data.title,
-            Milestone.proj_id == data.proj_id
-        ))
+    async def create_milestone(
+        self,
+        org_id: UUID,
+        team_id: UUID,
+        proj_id: UUID,
+        data: MilestoneCreate,
+        current_user: UUID,
+        db: AsyncSession,
+    ):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
+
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
+
+        result = await db.execute(
+            select(Milestone).where(
+                Milestone.title == data.title,
+                Milestone.proj_id == proj_id,
+                Milestone.team_id == team_id,
+                Milestone.org_id == org_id,
+            )
+        )
         existing = result.scalar_one_or_none()
 
         if existing:
             raise HTTPException(status_code=409, detail="Milestone already exists")
 
-        milestone = Milestone(**normalize_payloads(data.model_dump()))
+        data_dict = data.model_dump(exclude_unset=True)
+        data_dict["proj_id"] = proj_id
+        data_dict["team_id"] = team_id
+        data_dict["org_id"] = org_id
+        milestone = Milestone(**normalize_payloads(data_dict))
 
         db.add(milestone)
         await db.commit()
@@ -31,16 +54,52 @@ class MilestoneService:
 
         return milestone
 
+    async def get_milestones(
+        self,
+        org_id: UUID,
+        team_id: UUID,
+        proj_id: UUID,
+        current_user: UUID,
+        db: AsyncSession,
+    ):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
-    async def get_milestones(self, proj_id: UUID, db: AsyncSession) -> List[Milestone]:
-        result = await db.execute(select(Milestone).where(Milestone.proj_id == proj_id))
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
+
+        result = await db.execute(
+            select(Milestone).where(
+                Milestone.proj_id == proj_id,
+                Milestone.team_id == team_id,
+                Milestone.org_id == org_id,
+            )
+        )
         milestones = result.scalars().all()
 
         return milestones
 
+    async def get_milestone(
+        self,
+        org_id: UUID,
+        team_id: UUID,
+        proj_id: UUID,
+        milestone_id: UUID,
+        current_user: UUID,
+        db: AsyncSession,
+    ):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
-    async def get_milestone(self, milestone_id: UUID, db: AsyncSession) -> Milestone:
-        result = await db.execute(select(Milestone).where(Milestone.id == milestone_id))
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
+
+        result = await db.execute(
+            select(Milestone).where(
+                Milestone.id == milestone_id,
+                Milestone.proj_id == proj_id,
+                Milestone.team_id == team_id,
+                Milestone.org_id == org_id,
+            )
+        )
         milestone = result.scalar_one_or_none()
 
         if not milestone:
@@ -48,9 +107,29 @@ class MilestoneService:
 
         return milestone
 
+    async def update_milestone(
+        self,
+        org_id: UUID,
+        team_id: UUID,
+        proj_id: UUID,
+        milestone_id: UUID,
+        data: MilestoneUpdate,
+        current_user: UUID,
+        db: AsyncSession,
+    ):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
-    async def edit_milestone(self, milestone_id: UUID, data: MilestoneUpdate, db: AsyncSession) -> Milestone:
-        result = await db.execute(select(Milestone).where(Milestone.id == milestone_id))
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
+
+        result = await db.execute(
+            select(Milestone).where(
+                Milestone.id == milestone_id,
+                Milestone.proj_id == proj_id,
+                Milestone.team_id == team_id,
+                Milestone.org_id == org_id,
+            )
+        )
         milestone = result.scalar_one_or_none()
 
         if not milestone:
@@ -69,9 +148,28 @@ class MilestoneService:
 
         return milestone
 
+    async def delete_milestone(
+        self,
+        org_id: UUID,
+        team_id: UUID,
+        proj_id: UUID,
+        milestone_id: UUID,
+        current_user: UUID,
+        db: AsyncSession,
+    ):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
-    async def delete_milestone(self, milestone_id: UUID, db: AsyncSession) -> dict:
-        result = await db.execute(select(Milestone).where(Milestone.id == milestone_id))
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_LEAD_ROLES, db)
+
+        result = await db.execute(
+            select(Milestone).where(
+                Milestone.id == milestone_id,
+                Milestone.proj_id == proj_id,
+                Milestone.team_id == team_id,
+                Milestone.org_id == org_id,
+            )
+        )
         milestone = result.scalar_one_or_none()
 
         if not milestone:
