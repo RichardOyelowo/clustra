@@ -1,10 +1,11 @@
 from ..utils import normalize_payloads, check_org_membership, check_team_membership
 from ..utils import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES
+from ..utils import log_activity
 from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from ..schemas import ProjectCreate, ProjectUpdate
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
-from ..models  import Project
+from ..models  import Project, ActivityType, ModelType
 from sqlalchemy import select
 from uuid import UUID
 
@@ -42,6 +43,16 @@ class ProjectService:
         project = Project(**data_dict)
 
         db.add(project)
+        await db.flush()
+
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.PROJECTS,
+            project.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(project)
 
@@ -120,6 +131,14 @@ class ProjectService:
         for field, value in updated_data.items():
             setattr(project, field, value)
 
+        await log_activity(
+            current_user,
+            ActivityType.UPDATED,
+            ModelType.PROJECTS,
+            project.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(project)
         return project
@@ -139,6 +158,14 @@ class ProjectService:
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.PROJECTS,
+            project.id,
+            org_id,
+            db,
+        )
         await db.delete(project)
         await db.commit()
         return {"message": "Project deleted successfully"}

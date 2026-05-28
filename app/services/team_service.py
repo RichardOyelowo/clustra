@@ -1,13 +1,14 @@
 from ..utils import check_org_membership, check_team_membership, normalize_payloads
+from ..models import Team, TeamMember, ActivityType, ModelType
 from ..schemas import TeamCreate, TeamUpdate, TeamMemberCreate
 from ..utils import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES
 from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..utils import log_activity
-from ..models import Team, TeamMember, ActivityType, ModelType
 from fastapi import HTTPException
+from ..utils import log_activity
 from sqlalchemy import select
 from uuid import UUID
+
 
 class TeamService:
     """
@@ -31,6 +32,8 @@ class TeamService:
 
         db.add(team)
         await db.flush()
+
+        # creates activity
         await log_activity(
             current_user,
             ActivityType.CREATED,
@@ -39,6 +42,7 @@ class TeamService:
             org_id,
             db,
         )
+
         await db.commit()
         await db.refresh(team)
 

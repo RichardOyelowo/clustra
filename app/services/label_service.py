@@ -4,7 +4,8 @@ from ..utils import check_org_membership, check_team_membership
 from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..utils import normalize_payloads
-from ..models import Label, TaskLabel
+from ..utils import log_activity
+from ..models import Label, TaskLabel, ActivityType, ModelType
 from fastapi import HTTPException
 from sqlalchemy import select
 from uuid import UUID
@@ -53,6 +54,17 @@ class LabelService:
         label = Label(**normalize_payloads(data_dict))
 
         db.add(label)
+        await db.flush()
+
+        # records activty
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.LABELS,
+            label.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(label)
 
@@ -151,6 +163,14 @@ class LabelService:
         for field, value in updated_data.items():
             setattr(label, field, value)
 
+        await log_activity(
+            current_user,
+            ActivityType.UPDATED,
+            ModelType.LABELS,
+            label.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(label)
 
@@ -185,6 +205,14 @@ class LabelService:
         if not label:
             raise HTTPException(status_code=404, detail="Label doesn't exists")
 
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.LABELS,
+            label.id,
+            org_id,
+            db,
+        )
         await db.delete(label)
         await db.commit()
 
@@ -222,6 +250,15 @@ class LabelService:
         task_label = TaskLabel(**normalize_payloads(data_dict))
 
         db.add(task_label)
+        await db.flush()
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.TASKLABELS,
+            task_label.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(task_label)
 
@@ -295,8 +332,15 @@ class LabelService:
         if not task_label:
             raise HTTPException(status_code=404, detail="Task Label doesn't exist")
 
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.TASKLABELS,
+            task_label.id,
+            org_id,
+            db,
+        )
         await db.delete(task_label)
         await db.commit()
 
         return {"message": "Task label deleted successfully"}
-

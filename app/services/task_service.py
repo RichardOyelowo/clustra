@@ -1,11 +1,12 @@
 from ..utils import TEAM_LEAD_ROLES, TEAM_CONTRIBUTION_ROLES, TEAM_VIEW_ROLES
 from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES, normalize_payloads
 from ..utils import check_org_membership, check_team_membership
+from ..utils import log_activity
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas import TaskCreate, TaskUpdate
 from fastapi import HTTPException
 from sqlalchemy import select
-from ..models import Task
+from ..models import Task, ActivityType, ModelType
 from uuid import UUID
 
 
@@ -46,6 +47,17 @@ class TaskService:
         task = Task(**data_dict)
 
         db.add(task)
+        await db.flush()
+
+        # records activity
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.TASKS,
+            task.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(task)
 
@@ -138,6 +150,14 @@ class TaskService:
         for field, value in updated_data.items():
             setattr(task, field, value)
 
+        await log_activity(
+            current_user,
+            ActivityType.UPDATED,
+            ModelType.TASKS,
+            task.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(task)
         return task
@@ -169,6 +189,14 @@ class TaskService:
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.TASKS,
+            task.id,
+            org_id,
+            db,
+        )
         await db.delete(task)
         await db.commit()
         return {"message": "Task deleted successfully"}

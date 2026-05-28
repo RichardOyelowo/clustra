@@ -1,55 +1,65 @@
-from ..schemas import ActivityCreate, ActivityResponse
-from ..utils.normalization import normalize_payloads
+from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES, TEAM_VIEW_ROLES
+from ..utils import check_org_membership, check_team_membership
 from sqlalchemy.ext.asyncio import AsyncSession
+from ..models import Activity, Project
 from fastapi import HTTPException
-from ..models import Activity
 from sqlalchemy import select
 from uuid import UUID
 
 
 class ActivityService:
-    """
-    service class for Activity routes operations
-    """
 
-    async def create_activity(self, org_id: UUID, data: ActivityCreate, db: AsyncSession):
-        data_dict = data.model_dump()
-        activity = Activity(**normalize_payloads(data_dict), org_id=org_id)
+    async def get_org_activity(
+        self,
+        org_id: UUID,
+        current_user: UUID,
+        db: AsyncSession,
+    ):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
-        db.add(activity)
-        await db.commit()
-        await db.refresh(activity)
+        if org_member.role not in ORG_ADMIN_ROLES:
+            raise HTTPException(status_code=403, detail="Only org admins can view org-wide activity")
 
-        return activity
-
-
-    async def get_activities(self, org_id: UUID, db: AsyncSession):
-        result = await db.execute(select(Activity).where(Activity.org_id == org_id))
-        activities = result.scalars().all()
-
-        if not activities: return []
-
-        return activities
+        result = await db.execute(
+            select(Activity)
+            .where(Activity.org_id == org_id)
+            .order_by(Activity.created_at.desc())
+        )
+        return result.scalars().all()
 
 
-    async def get_activity(self, activity_id: UUID, db: AsyncSession):
-        result = await db.execute(select(Activity).where(Activity.id == activity_id))
-        activity = result.scalar_one_or_none()
+    async def get_project_activity(
+        self,
+        org_id: UUID,
+        team_id: UUID,
+        proj_id: UUID,
+        current_user: UUID,
+        db: AsyncSession,
+    ):
+        org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
 
-        if not activity:
-            raise HTTPException(status_code=404, detail="Activity not found")
+        if org_member.role not in ORG_ADMIN_ROLES:
+            await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
 
-        return activity
+        # verify project exists and belongs to this org/team
+        proj_result = await db.execute(
+            select(Project).where(
+                Project.id == proj_id,
+                Project.team_id == team_id,
+                Project.org_id == org_id,
+            )
+        )
+        project = proj_result.scalar_one_or_none()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
 
+        result = await db.execute(
+            select(Activity)
+            .where(
+                Activity.org_id == org_id,
+                Activity.model_id == proj_id,
+            )
+            .order_by(Activity.created_at.desc())
+        )
+        return result.scalars().all()
 
-    async def delete_activity(self, activity_id: UUID, db: AsyncSession):
-        result = await db.execute(select(Activity).where(Activity.id == activity_id))
-        activity = result.scalar_one_or_none()
-
-        if not activity:
-            raise HTTPException(status_code=404, detail="Activity not found")
-
-        await db.delete(activity)
-        await db.commit()
-
-        return {"message": "Activity deleted successfully"}

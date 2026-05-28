@@ -1,6 +1,8 @@
 from ..models import Organization, OrganizationMember, OrganizationMemberRole
+from ..models import ActivityType, ModelType
 from ..utils import ORG_ANY_ROLES, ORG_ADMIN_ROLES, ORG_OWNER_ROLES
 from ..utils import normalize_payloads, check_org_membership
+from ..utils import log_activity
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -46,7 +48,25 @@ class OrgService:
             role = OrganizationMemberRole.OWNER
         )
         db.add(owner)
+        await db.flush()
 
+        # records activty
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.ORGANIZATIONS,
+            org.id,
+            org.id,
+            db,
+        )
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.ORGANIZATION_MEMBERS,
+            owner.id,
+            org.id,
+            db,
+        )
         await db.commit()
         await db.refresh(org)
 
@@ -88,6 +108,14 @@ class OrgService:
         for field, value in updated_data.items():
             setattr(org, field, value)
 
+        await log_activity(
+            current_user,
+            ActivityType.UPDATED,
+            ModelType.ORGANIZATIONS,
+            org.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(org)
         return org
@@ -107,6 +135,14 @@ class OrgService:
         if not org:
             raise HTTPException(status_code=404, detail="Organization not found")
 
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.ORGANIZATIONS,
+            org.id,
+            org_id,
+            db,
+        )
         await db.delete(org)
         await db.commit()
         return {"message": "Organization deleted successfully"}
@@ -148,6 +184,15 @@ class OrgService:
         member = OrganizationMember(**member_data, org_id=org_id)
 
         db.add(member)
+        await db.flush()
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.ORGANIZATION_MEMBERS,
+            member.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(member)
         return member
@@ -213,6 +258,14 @@ class OrgService:
         if not member:
             raise HTTPException(status_code=404, detail="Member not found")
 
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.ORGANIZATION_MEMBERS,
+            member.id,
+            org_id,
+            db,
+        )
         await db.delete(member)
         await db.commit()
         return {"message": "Member removed successfully"}

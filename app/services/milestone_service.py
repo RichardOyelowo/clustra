@@ -4,8 +4,9 @@ from ..utils import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES
 from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..utils import normalize_payloads
+from ..utils import log_activity
 from fastapi import HTTPException
-from ..models import Milestone
+from ..models import Milestone, ActivityType, ModelType
 from sqlalchemy import select
 from uuid import UUID
 
@@ -49,6 +50,16 @@ class MilestoneService:
         milestone = Milestone(**normalize_payloads(data_dict))
 
         db.add(milestone)
+        await db.flush()
+
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.MILESTONES,
+            milestone.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(milestone)
 
@@ -143,6 +154,14 @@ class MilestoneService:
         for field, value in updated_data.items():
             setattr(milestone, field, value)
 
+        await log_activity(
+            current_user,
+            ActivityType.UPDATED,
+            ModelType.MILESTONES,
+            milestone.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(milestone)
 
@@ -175,6 +194,14 @@ class MilestoneService:
         if not milestone:
             raise HTTPException(status_code=404, detail="Milestone doesn't exist")
 
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.MILESTONES,
+            milestone.id,
+            org_id,
+            db,
+        )
         await db.delete(milestone)
         await db.commit()
 
