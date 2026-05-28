@@ -17,5 +17,5 @@ class TimeStamp:
             DateTime(timezone=True), 
             default=lambda: datetime.now(timezone.utc), 
             onupdate=lambda: datetime.now(timezone.utc), 
-            nullabe=False
+            nullable=False
     )

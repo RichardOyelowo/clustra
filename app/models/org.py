@@ -14,9 +14,7 @@ class OrganizationMemberRole(str, enum.Enum):
     
 class Organization(Base, TimeStamp):
     __tablename__ = "organizations"
-    __table_args__ = (
-        UniqueConstraint("slug", name="uq_organization_slug")
-    )
+    __table_args__ = (UniqueConstraint("slug", name="uq_organization_slug"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
             UUID(as_uuid=True), 
@@ -36,9 +34,7 @@ class Organization(Base, TimeStamp):
 
 class OrganizationMember(Base):
     __tablename__ = "organizationmembers"
-    __table_args__ = (
-        UniqueConstraint("org_id", "user_id", name="uq_org_member_user")
-    )
+    __table_args__ = (UniqueConstraint("org_id", "user_id", name="uq_org_member_user"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
             UUID(as_uuid=True), 
@@ -49,7 +45,7 @@ class OrganizationMember(Base):
     )
     org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
-    role: Mapped[OrganizationMemberRole] = mapped_column(ENUM(OrganizationMemberRole), default=OrganizationMemberRole.MEMBER, nullable=False)
+    role: Mapped[OrganizationMemberRole] = mapped_column(Enum(OrganizationMemberRole), default=OrganizationMemberRole.MEMBER, nullable=False)
     joined_at: Mapped[datetime] = mapped_column(DateTime,default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self) -> str:
