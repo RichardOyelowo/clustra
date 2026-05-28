@@ -1,8 +1,6 @@
-from pydantic.types import T
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, ForeignKey, Date
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql.operators import as_
 from .base import Base, TimeStamp
 from datetime import date
 import uuid
@@ -39,8 +37,9 @@ class Task(Base, TimeStamp):
     priority: Mapped[TaskPriority] = mapped_column(String, default="low", nullable=False)
     proj_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
     team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
-    org_id: Mapped[uuid.UIID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizatations.id"), nullable=False)
+    org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
     assignee_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     due_date: Mapped[date | None] = mapped_column(Date, default=date.today, nullable=True)
 
 

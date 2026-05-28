@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String, DateTime, Enum
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime, timezone
 from .base import Base, TimeStamp
@@ -27,6 +27,7 @@ class Team(Base, TimeStamp):
     slug: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
     desc: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
     def __repr__(self) -> str:
         return f"<Team: {self.id}, Organization id: {self.org_id}>"
