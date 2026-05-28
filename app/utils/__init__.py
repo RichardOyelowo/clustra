@@ -8,6 +8,7 @@ from .permissions import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES, TEAM_CONTRIBUTION_ROL
 from .permissions import ORG_OWNER_ROLES, ORG_ADMIN_ROLES, ORG_ANY_ROLES 
 from .permissions import check_org_membership, check_team_membership
 from .normalization import normalize_payloads
+from .activity import log_activity
 
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "TEAM_LEAD_ROLES",
     "ORG_OWNER_ROLES",
     "ORG_ADMIN_ROLES",
-    "ORG_ANY_ROLES"
+    "ORG_ANY_ROLES",
+    "log_activity"
 ]
