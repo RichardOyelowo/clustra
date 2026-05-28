@@ -20,6 +20,7 @@ class ModelType(str, enum.Enum):
     TEAMMEMBERS = "teammembers"
     PROJECTS = "projects"
     TASKS = "tasks"
+    LABELS = "labels"
     TASKLABELS = "tasklabels"
     MILESTONES = "milestones"
 
@@ -39,4 +40,3 @@ class Activity(Base, TimeStamp):
     model_type: Mapped[ModelType] = mapped_column(String, default="organization", nullable=False)
     model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"))
-

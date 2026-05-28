@@ -3,7 +3,8 @@ from ..schemas import TeamCreate, TeamUpdate, TeamMemberCreate
 from ..utils import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES
 from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import Team, TeamMember
+from ..utils import log_activity
+from ..models import Team, TeamMember, ActivityType, ModelType
 from fastapi import HTTPException
 from sqlalchemy import select
 from uuid import UUID
@@ -29,6 +30,15 @@ class TeamService:
         team = Team(**data_dict)
 
         db.add(team)
+        await db.flush()
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.TEAMS,
+            team.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(team)
 
@@ -88,6 +98,14 @@ class TeamService:
         for field, value in updated_data.items():
             setattr(team, field, value)
             
+        await log_activity(
+            current_user,
+            ActivityType.UPDATED,
+            ModelType.TEAMS,
+            team.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(team)
 
@@ -103,6 +121,14 @@ class TeamService:
         if not team:
             raise HTTPException(status_code=404, detail="Team not found")
             
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.TEAMS,
+            team.id,
+            org_id,
+            db,
+        )
         await db.delete(team)
         await db.commit()
         return {"message": "Team deleted successfully"}
@@ -136,6 +162,15 @@ class TeamService:
         member = TeamMember(**member_data, team_id=team_id)
         
         db.add(member)
+        await db.flush()
+        await log_activity(
+            current_user,
+            ActivityType.CREATED,
+            ModelType.TEAMMEMBERS,
+            member.id,
+            org_id,
+            db,
+        )
         await db.commit()
         await db.refresh(member)
 
@@ -191,7 +226,14 @@ class TeamService:
         if not member:
             raise HTTPException(status_code=404, detail="Member not found")
             
+        await log_activity(
+            current_user,
+            ActivityType.DELETED,
+            ModelType.TEAMMEMBERS,
+            member.id,
+            org_id,
+            db,
+        )
         await db.delete(member)
         await db.commit()
         return {"message": "Member removed successfully"}
-
