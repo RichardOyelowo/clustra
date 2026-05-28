@@ -1,4 +1,4 @@
-from  ..models.team import TeamRole
+from  ..models import TeamMemberRole
 from .base import BaseResponse
 from pydantic import BaseModel
 from datetime import datetime
@@ -26,10 +26,10 @@ class TeamResponse(BaseResponse):
 
 class TeamMemberCreate(BaseModel):
     user_id: uuid.UUID
-    role: TeamRole = TeamRole.CONTRIBUTOR
+    role: TeamMemberRole = TeamMemberRole.CONTRIBUTOR
 
 
 class TeamMemberResponse(BaseResponse):
     id: uuid.UUID
-    role: TeamRole
+    role: TeamMemberRole
     joined_at: datetime
