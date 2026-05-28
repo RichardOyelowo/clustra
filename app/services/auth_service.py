@@ -22,7 +22,7 @@ class AuthService:
         new_user = User(
             email= lower_email,
             username= user.username,
-            hashed_password= hash_password(user.plain_password)
+            password_hash= hash_password(user.plain_password)
         )
 
         db.add(new_user)
