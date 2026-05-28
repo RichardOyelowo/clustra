@@ -1,11 +1,13 @@
 venv
 *.venv
 .idea
+*_pycache*
 
-# stop running while building
 .env
 *.env
 *.yml
 /*.yml
+
+# stop running while building
 .github/workflows/ci.yml
 .github/workflows/cd.yml
