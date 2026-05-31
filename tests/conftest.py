@@ -10,39 +10,42 @@ from app.main import app
 
 database_url = settings.test_database_url
 
-test_engine = create_async_engine(database_url)
-test_session = async_sessionmaker(test_engine, expire_on_commit=False)
 
-async def override_db_session():
-    async with test_session() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
-
-app.dependency_overrides[db_session] = override_db_session
-
-
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_database():
-    async with test_engine.begin() as conn:
+@pytest_asyncio.fixture(scope="session")
+async def engine():
+    engine = create_async_engine(database_url)
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
-    async with test_engine.begin() as conn:
+    yield engine
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
 
 
 @pytest_asyncio.fixture
-async def client():
+async def client(engine):
+    test_session = async_sessionmaker(test_engine, expire_on_commit=False)
+
+    async def override_db_session():
+        async with test_session() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
+
+    app.dependency_overrides[db_session] = override_db_session
+
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test"
     ) as c:
         yield c
+
+    app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture
