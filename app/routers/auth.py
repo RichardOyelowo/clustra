@@ -18,7 +18,7 @@ async def create_account(data: UserCreate, db: AsyncSession = Depends(db_session
     return user
 
 
-@auth_router.post("/login/")
+@auth_router.post("/login")
 async def login(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         oauth: OAuthHandler = Depends(get_oauth)
