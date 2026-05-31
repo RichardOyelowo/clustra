@@ -43,3 +43,19 @@ async def client():
         base_url="http://test"
     ) as c:
         yield c
+
+
+@pytest_asyncio.fixture
+async def auth_client(client):
+    await client.post("/signup", json={
+        "email": "testuser@clustra.com",
+        "username": "testuser",
+        "plain_password": "testpass123"
+    })
+    response = await client.post("/login/", data={
+        "username": "testuser@clustra.com",
+        "password": "testpass123"
+    })
+    token = response.json()["access_token"]
+    client.headers.update({"Authorization": f"Bearer {token}"})
+    return client
