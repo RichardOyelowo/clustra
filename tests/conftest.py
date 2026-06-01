@@ -51,17 +51,16 @@ async def client(engine):
 
 @pytest_asyncio.fixture
 async def auth_client(client):
-    signup = await client.post("/signup", json={
+    await client.post("/signup", json={
         "email": "testuser@clustra.com",
         "username": "testuser",
         "plain_password": "testpass123"
     })
-    print("signup status:", signup.status_code, signup.text)
     response = await client.post("/login", data={
         "username": "testuser@clustra.com",
         "password": "testpass123"
     })
-    print("Login status:", response.status_code, response.text)
+
     token = response.json()["access_token"]
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client
