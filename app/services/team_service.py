@@ -28,6 +28,7 @@ class TeamService:
 
         data_dict = normalize_payloads(data.model_dump())
         data_dict["created_by"] = current_user
+        data_dict["org_id"] = org_id
         team = Team(**data_dict)
 
         db.add(team)

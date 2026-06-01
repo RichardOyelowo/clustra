@@ -38,6 +38,8 @@ class ProjectService:
             raise HTTPException(status_code=409, detail="Project already exists")
 
         data_dict = data.model_dump()
+        data_dict["team_id"] = team_id
+        data_dict["org_id"] = org_id
         data_dict["created_by"] = current_user
         data_dict = normalize_payloads(data_dict)
         project = Project(**data_dict)
