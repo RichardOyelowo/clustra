@@ -10,3 +10,4 @@ venv
 
 # stop running while building
 .github/workflows/*
+
