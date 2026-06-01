@@ -1,5 +1,4 @@
 import uuid
-import pytest
 
 
 async def test_create_org(auth_client):
@@ -87,6 +86,5 @@ async def test_delete_org(auth_client):
         },
     )
     deletion = await auth_client.delete(f'/org/{response.json()["id"]}')
-    print(deletion.status_code, deletion.text)
     assert deletion.status_code == 200
 
