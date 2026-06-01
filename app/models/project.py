@@ -6,6 +6,7 @@ import uuid
 import enum
 
 
+
 class ProjectStatus(str, enum.Enum):
     COMPLETED = "completed"
     ACTIVE = "active"
@@ -18,19 +19,28 @@ class Project(Base, TimeStamp):
     __tablename__ = "projects"
 
     id: Mapped[uuid.UUID] = mapped_column(
-            UUID(as_uuid=True), 
-            primary_key=True,
-            default=uuid.uuid4, 
-            unique=True,
-            nullable=False
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     desc: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    created_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
-    org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
-    status: Mapped[ProjectStatus] = mapped_column(String, default="pending", nullable=False)
+    team_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False
+    )
+    created_by: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    org_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    status: Mapped[ProjectStatus] = mapped_column(
+        String, default="pending", nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<Project id: {self.id}>"
-

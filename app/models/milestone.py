@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, ForeignKey, Date
 from sqlalchemy.dialects.postgresql import UUID
 from .base import Base, TimeStamp
@@ -17,16 +17,27 @@ class Milestone(Base, TimeStamp):
     __tablename__ = "milestones"
 
     id: Mapped[uuid.UUID] = mapped_column(
-            UUID(as_uuid=True),
-            primary_key=True,
-            default=uuid.uuid4,
-            unique=True,
-            nullable=False,
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
-    proj_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("projects.id"))
-    team_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
-    org_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
-    status: Mapped[MilestoneStatus] = mapped_column(String, default="pending", nullable=False)
-    due_date: Mapped[date | None] = mapped_column(Date, default=date.today, nullable=True)
-
+    proj_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE")
+    )
+    team_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False
+    )
+    org_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    status: Mapped[MilestoneStatus] = mapped_column(
+        String, default="pending", nullable=False
+    )
+    due_date: Mapped[date | None] = mapped_column(
+        Date, default=date.today, nullable=True
+    )
