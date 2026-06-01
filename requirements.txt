@@ -1,0 +1,13 @@
+httpx
+pytest
+asyncpg
+alembic
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+python-dotenv
+pytest-asyncio
+python-multipart
+richard-gatevault
+pydantic-settings
