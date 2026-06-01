@@ -17,7 +17,7 @@ org_router = APIRouter(prefix="/org")
 org_service = OrgService()
 
 
-@org_router.post("/", response_model=OrganizationResponse)
+@org_router.post("", response_model=OrganizationResponse)
 async def create_organization(
     data: OrganizationCreate,
     current_user=Depends(validate_user),
