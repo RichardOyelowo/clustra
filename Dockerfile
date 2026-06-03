@@ -1,17 +1,19 @@
-FROM python:3.14 
+FROM python:3.12-slim
 
-WORKDIR /CODE
+WORKDIR /code
 
-COPY ./requirements.txt /CODE/requirements.txt
+COPY ./requirements.txt /code/requirements.txt
 
-RUN pip install --no-cache-dir -r /CODE/requirements.txt
+RUN pip install --no-cache-dir -r /code/requirements.txt
 
-COPY ./app /CODE/app
+EXPOSE 8000
 
-COPY ./alembic /CODE/alembic
+COPY ./app /code/app
 
-COPY ./alembic.ini /CODE/alembic.ini
+COPY ./alembic /code/alembic
 
-COPY ./start.sh /CODE/start.sh
+COPY ./alembic.ini /code/alembic.ini
+
+COPY ./start.sh /code/start.sh
 
 CMD ["bash", "start.sh"]
