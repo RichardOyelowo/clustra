@@ -5,6 +5,7 @@ alembic
 fastapi
 uvicorn
 pydantic
+aiofiles
 sqlalchemy
 python-dotenv
 pytest-asyncio
