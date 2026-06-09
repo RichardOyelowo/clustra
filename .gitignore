@@ -4,7 +4,6 @@ venv
 *_pycache*
 *.pyc
 .pytest_cache
-tests/
 
 .env
 *.env
