@@ -3,7 +3,7 @@ import uuid
 
 async def test_create_org(auth_client):
     response = await auth_client.post(
-        "/org",
+        "/orgs",
         json={
             "name": "test_org",
             "slug": "test_create_org",
@@ -16,9 +16,44 @@ async def test_create_org(auth_client):
     assert isinstance(response.json()["desc"], str)
 
 
+async def test_get_user_orgs(auth_client):
+    response = await auth_client.post(
+        "/orgs",
+        json={
+            "name": "test_get_user_orgs",
+            "slug": "test_get_user_orgs_slug",
+            "desc": "this should be a successful org creation"
+        },
+    )
+    assert response.status_code == 200, response.json()
+
+    orgs_response = await auth_client.get("/orgs")
+    assert orgs_response.status_code == 200, orgs_response.json()
+    assert orgs_response.json()[1]["id"] == response.json()["id"]
+
+
+async def test_get_user_orgs_empty(client):
+    # fresh client with no orgs
+    await client.post("/signup", json={
+        "email": "emptyorgs@clustra.com",
+        "username": "emptyorgs",
+        "plain_password": "testpass123"
+    })
+    response = await client.post("/login", data={
+        "username": "emptyorgs@clustra.com",
+        "password": "testpass123"
+    })
+    token = response.json()["access_token"]
+    client.headers.update({"Authorization": f"Bearer {token}"})
+    
+    orgs = await client.get("/orgs")
+    assert orgs.status_code == 200
+    assert len(orgs.json()) == 0
+ 
+
 async def test_create_org_duplicate_slug(auth_client):
     response = await auth_client.post(
-        "/org",
+        "/orgs",
         json={
             "name": "test_org_2",
             "slug": "test_create_org",
@@ -30,7 +65,7 @@ async def test_create_org_duplicate_slug(auth_client):
 
 async def test_get_org(auth_client):
     response = await auth_client.post(
-        "/org",
+        "/orgs",
         json={
             "name": "test_get_org",
             "slug": "test_get_org_slug",
@@ -40,7 +75,7 @@ async def test_get_org(auth_client):
     assert response.status_code == 200, response.json()
 
     # calls to get the org object
-    org_response = await auth_client.get(f"/org/{response.json()['id']}")
+    org_response = await auth_client.get(f"/orgs/{response.json()['id']}")
     assert org_response.status_code == 200, org_response.json()
     body = org_response.json()
 
@@ -51,13 +86,13 @@ async def test_get_org(auth_client):
 
 
 async def test_org_not_found(auth_client):
-    response = await auth_client.get(f"/org/{uuid.uuid4()}")
+    response = await auth_client.get(f"/orgs/{uuid.uuid4()}")
     assert response.status_code == 403
 
 
 async def test_update_org(auth_client):
     response = await auth_client.post(
-        "/org",
+        "/orgs",
         json={
             "name": "test_update_org",
             "slug": "test_update_org_slug",
@@ -65,7 +100,7 @@ async def test_update_org(auth_client):
         },
     )
     org = await auth_client.patch(
-        f"/org/{response.json()['id']}",
+        f"/orgs/{response.json()['id']}",
         json={
             "name": "test_update_org_updated",
             "desc": "this is the updated desc",
@@ -78,14 +113,14 @@ async def test_update_org(auth_client):
 
 async def test_delete_org(auth_client):
     response = await auth_client.post(
-        "/org",
+        "/orgs",
         json={
             "name": "test_delete_org",
             "slug": "test_delete_org_slug",
             "desc": "this should be a successful org creation",
         },
     )
-    deletion = await auth_client.delete(f'/org/{response.json()["id"]}')
+    deletion = await auth_client.delete(f'/orgs/{response.json()["id"]}')
     assert deletion.status_code == 200
 
 

@@ -3,7 +3,7 @@ import uuid
 
 async def create_label_parent(auth_client, prefix):
     org_response = await auth_client.post(
-        "/org",
+        "/orgs",
         json={
             "name": f"{prefix}_org",
             "slug": f"{prefix}_org_{uuid.uuid4().hex}",

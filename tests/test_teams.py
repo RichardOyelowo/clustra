@@ -3,7 +3,7 @@ import uuid
 
 async def create_org(auth_client, prefix):
     response = await auth_client.post(
-        "/org",
+        "/orgs",
         json={
             "name": f"{prefix}_org",
             "slug": f"{prefix}_org_{uuid.uuid4().hex}",
