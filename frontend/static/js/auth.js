@@ -1,4 +1,4 @@
-function requireAuth() {
+export function requireAuth() {
     const token = localStorage.getItem("token")
     if (!token) {
         window.location.href = "/login.html"
@@ -6,7 +6,7 @@ function requireAuth() {
     return token
 }
 
-function logout() {
+export function logout() {
     localStorage.removeItem("token")
     window.location.href = "/login.html"
 }
