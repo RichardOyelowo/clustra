@@ -2,7 +2,7 @@
 
 Multi-tenant task management API built with FastAPI, PostgreSQL, async SQLAlchemy, Alembic, and RBAC.
 
-Clustra is in active development. The backend is being built around strict tenant isolation and clear service boundaries.
+Clustra is in active development. The backend is built around strict tenant isolation and clear service boundaries.
 
 ## What It Is
 
