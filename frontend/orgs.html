@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/css/orgs.css" />
   </head>
   <body>
+    <script type="module" src="/static/js/orgs.js"></script>
     <header class="navbar">
       <span class="nav-brand">Clustra</span>
       <button id="logout_btn">logout</button>
@@ -16,7 +17,31 @@
       <button type="button" id="create_org_btn">+ New Organization</button>
       <div id="orgs_card" class="orgs_card"></div>
     </main>
-    <script type="module" src="/static/js/orgs.js"></script>
+
+    <!-- hidden create org form -->
+    <div id="create_org_modal" class="modal hidden">
+      <div class="modal_content">
+        <h2>New Organization</h2>
+        <form id="create_org_form">
+          <input
+            type="text"
+            name="name"
+            placeholder="Organization name"
+            required
+          />
+          <input
+            type="text"
+            name="slug"
+            placeholder="Slug (e.g. my-org)"
+            required
+          />
+          <textarea name="desc" placeholder="Description (optional)"></textarea>
+          <div class="modal_actions">
+            <button type="button" id="cancel_btn">Cancel</button>
+            <button type="submit">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </body>
 </html>
-
