@@ -13,8 +13,16 @@ from ..schemas import (
     OrganizationMemberResponse,
 ) 
 
-org_router = APIRouter(prefix="/org")
+org_router = APIRouter(prefix="/orgs")
 org_service = OrgService()
+
+
+@org_router.get("", response_model=List[OrganizationResponse])
+async def get_user_orgs(
+    current_user=Depends(validate_user),
+    db: AsyncSession = Depends(db_session),
+):
+    return await org_service.get_user_orgs(current_user.id, db)
 
 
 @org_router.post("", response_model=OrganizationResponse)

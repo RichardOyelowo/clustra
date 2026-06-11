@@ -1,10 +1,10 @@
 from ..models import Organization, OrganizationMember, OrganizationMemberRole
-from ..models import ActivityType, ModelType
 from ..utils import ORG_ANY_ROLES, ORG_ADMIN_ROLES, ORG_OWNER_ROLES
 from ..utils import normalize_payloads, check_org_membership
-from ..utils import log_activity
 from sqlalchemy.ext.asyncio import AsyncSession
+from ..models import ActivityType, ModelType
 from fastapi import HTTPException
+from ..utils import log_activity
 from sqlalchemy import select
 from uuid import UUID
 from ..schemas import (
@@ -18,6 +18,15 @@ class OrgService:
     """
         service class for organization routes operations
     """
+
+    async def get_user_orgs(self, current_user: UUID, db: AsyncSession):
+        result = await db.execute(
+            select(Organization)
+            .join(OrganizationMember, OrganizationMember.org_id == Organization.id)
+            .where(OrganizationMember.user_id == current_user)
+        )
+        return result.scalars().all()
+
     
     async def create_org(
             self, 
