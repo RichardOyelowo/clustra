@@ -1,3 +1,62 @@
-.hidden {
-    display: none;
+@import url('/static/css/styles.css');
+
+h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; padding: 48px 32px 0; }
+
+.orgs_page { max-width: 1100px; margin: 0 auto; padding: 32px; }
+
+.create_org_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 20px;
+    background: var(--primary);
+    color: #001e2c;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 32px;
+}
+.create_org_btn:hover { background: #7dd3fc; transform: translateY(-1px); }
+
+.orgs_card { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; }
+.orgs_card ul { display: contents; list-style: none; }
+.orgs_card li {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.orgs_card li::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: transparent;
+    transition: background 0.2s;
+}
+.orgs_card li:hover {
+    border-color: var(--border-bright);
+    background: var(--surface-high);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.orgs_card li:hover::before { background: var(--primary); }
+
+.org_name { font-weight: 700; font-size: 18px; margin-bottom: 18px; }
+.org_desc {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(212, 228, 250, 0.08);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--on-muted);
+    max-width: 90%;
 }
