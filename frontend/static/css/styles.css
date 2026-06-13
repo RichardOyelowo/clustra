@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 :root {
     --bg: #051424;
@@ -9,21 +9,26 @@
     --on-surface: #d4e4fa;
     --on-muted: #7a93aa;
     --primary: #38bdf8;
-    --primary-glow: rgba(56,189,248,0.12);
+    --primary-glow: rgba(56, 189, 248, 0.12);
     --error: #ef4444;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 body {
     background-color: var(--bg);
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
     color: var(--on-surface);
     min-height: 100vh;
 }
 
 /* shared form styles (used by login/signup/modals) */
-input, textarea {
+input,
+textarea {
     width: 100%;
     padding: 10px 14px;
     background: var(--bg);
@@ -33,16 +38,23 @@ input, textarea {
     font-size: 14px;
     font-family: inherit;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
     resize: vertical;
 }
-input::placeholder, textarea::placeholder { color: var(--on-muted); }
-input:focus, textarea:focus {
+input::placeholder,
+textarea::placeholder {
+    color: var(--on-muted);
+}
+input:focus,
+textarea:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
-button[type="submit"], .btn-primary {
+button[type="submit"],
+.btn-primary {
     padding: 11px;
     background: var(--primary);
     color: #001e2c;
@@ -52,9 +64,12 @@ button[type="submit"], .btn-primary {
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
+    transition:
+        background 0.15s,
+        transform 0.1s;
 }
-button[type="submit"]:hover, .btn-primary:hover {
+button[type="submit"]:hover,
+.btn-primary:hover {
     background: #7dd3fc;
     transform: translateY(-1px);
 }
@@ -78,7 +93,8 @@ button[type="submit"]:hover, .btn-primary:hover {
     color: var(--primary);
     letter-spacing: -0.02em;
 }
-.logout_btn {
+
+#logout_btn .logout_btn {
     padding: 9px 18px;
     background: transparent;
     border: 1px solid var(--border-bright);
@@ -90,20 +106,26 @@ button[type="submit"]:hover, .btn-primary:hover {
     cursor: pointer;
     transition: all 0.15s;
 }
-.logout_btn:hover { border-color: var(--error); color: var(--error); }
+
+#logout_btn .logout_btn:hover {
+    border-color: var(--error);
+    color: var(--error);
+}
 
 /* modal (used on every page with create/edit forms) */
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
     backdrop-filter: blur(4px);
 }
-.hidden { display: none; }
+.hidden {
+    display: none;
+}
 .modal_content {
     background: var(--surface);
     border: 1px solid var(--border-bright);
@@ -121,8 +143,14 @@ button[type="submit"]:hover, .btn-primary:hover {
     color: var(--on-surface);
     letter-spacing: -0.02em;
 }
-.modal_content textarea { min-height: 80px; }
-.modal_actions { display: flex; gap: 10px; justify-content: flex-end; }
+.modal_content textarea {
+    min-height: 80px;
+}
+.modal_actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
 .modal_actions button[type="button"] {
     padding: 11px 20px;
     background: transparent;
@@ -135,5 +163,10 @@ button[type="submit"]:hover, .btn-primary:hover {
     cursor: pointer;
     transition: all 0.15s;
 }
-.modal_actions button[type="button"]:hover { border-color: var(--on-muted); color: var(--on-surface); }
-.modal_actions button[type="submit"] { padding: 11px 24px; }
+.modal_actions button[type="button"]:hover {
+    border-color: var(--on-muted);
+    color: var(--on-surface);
+}
+.modal_actions button[type="submit"] {
+    padding: 11px 24px;
+}
