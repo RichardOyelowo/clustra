@@ -60,3 +60,6 @@ form.addEventListener("submit", async function (e) {
 
 const logoutBtn = document.getElementById("logout_btn");
 logoutBtn.addEventListener("click", logout);
+
+await loadOrgs()
+
