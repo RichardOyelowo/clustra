@@ -1,8 +1,11 @@
+/* ── SIDEBAR — shared across org, team, project, activity, settings pages ── */
+/* imported by each page css alongside styles.css                             */
+
 #sidebar_mount { display: contents; }
 
 .sidebar {
-    width: 224px;
-    min-width: 224px;
+    width: 260px;
+    min-width: 260px;
     background: #0d1c2d;
     border-right: 1px solid var(--border);
     display: flex;
@@ -155,3 +158,4 @@
     display: block;
 }
 .user_role { font-size: 10px; color: var(--on-muted); }
+
