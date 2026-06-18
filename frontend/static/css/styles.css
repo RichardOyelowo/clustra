@@ -94,7 +94,7 @@ button[type="submit"]:hover,
     letter-spacing: -0.02em;
 }
 
-#logout_btn .logout_btn {
+#logout_btn, .logout_btn {
     padding: 9px 18px;
     background: transparent;
     border: 1px solid var(--border-bright);
@@ -107,7 +107,7 @@ button[type="submit"]:hover,
     transition: all 0.15s;
 }
 
-#logout_btn .logout_btn:hover {
+.logout_btn:hover {
     border-color: var(--error);
     color: var(--error);
 }
