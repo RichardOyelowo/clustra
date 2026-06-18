@@ -3,42 +3,72 @@ import { requireAuth, logout } from "./auth.js";
 
 requireAuth();
 
+const DOM = {
+    orgsContainer: document.getElementById("orgs_card"),
+    createOrgModal: document.getElementById("create_org_modal"),
+    createOrgBtn: document.getElementById("create_org_btn"),
+    cancelBtn: document.getElementById("cancel_btn"),
+    logoutBtn: document.getElementById("logout_btn"),
+};
+
 // load all orgs
 async function loadOrgs() {
     const response = await API.get("/orgs");
+
     if (!response.ok) {
         console.error("Failed to fetch orgs");
         return;
     }
     const orgs = await response.json();
-    const container = document.getElementById("orgs_card");
-    container.innerHTML = "";
+    DOM.orgsContainer.innerHTML = "";
 
     if (orgs.length >= 1) {
         const orgsList = document.createElement("ul");
-        container.append(orgsList);
+        DOM.orgsContainer.append(orgsList);
+
         for (const org of orgs) {
-            const newElement = document.createElement("li");
-            newElement.textContent = org.name;
-            orgsList.append(newElement);
+            const li = document.createElement("li");
+
+            const name = document.createElement("div");
+            name.className = "org_name";
+            name.textContent = org.name;
+
+            const desc = document.createElement("p");
+            desc.className = "org_desc";
+            desc.textContent = org.desc || "";
+
+            li.append(name, desc);
+
+            li.addEventListener("click", () => {
+                window.location.href = `/org.html?id=${org.id}`;
+            });
+
+            // keyboard accessibility
+            li.setAttribute("tabindex", "0");
+            li.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    window.location.href = `/org.html?id=${org.id}`;
+                }
+            });
+
+            orgsList.append(li);
         }
     }
 }
 
-// hidden hides the tag content
-const createOrg = document.getElementById("create_org_btn");
-createOrg.addEventListener("click", () => {
-    document.getElementById("create_org_modal").classList.remove("hidden");
+// open modal
+DOM.createOrgBtn.addEventListener("click", () => {
+    DOM.createOrgModal.classList.remove("hidden");
 });
 
-const cancelBtn = document.getElementById("cancel_btn");
-cancelBtn.addEventListener("click", () => {
-    document.getElementById("create_org_modal").classList.add("hidden");
+// close modal
+DOM.cancelBtn.addEventListener("click", () => {
+    DOM.createOrgModal.classList.add("hidden");
 });
 
 // form submission to endpoint
-const form = document.getElementById("create_org_form");
-form.addEventListener("submit", async function (e) {
+document.getElementById("create_org_form").addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const body = {
@@ -46,20 +76,23 @@ form.addEventListener("submit", async function (e) {
         slug: form.slug.value,
         desc: form.desc.value,
     };
+
     const response = await API.post("/orgs", body);
+
     if (!response.ok) {
         console.error("failed to create org", await response.json());
         return;
     }
-    document.getElementById("create_org_modal").classList.add("hidden");
+
+    DOM.createOrgModal.classList.add("hidden");
     form.reset();
 
-    // updates orgs
+    // update orgs after creating a new one
     await loadOrgs();
 });
 
-const logoutBtn = document.getElementById("logout_btn");
-logoutBtn.addEventListener("click", logout);
+// logout
+DOM.logoutBtn.addEventListener("click", logout);
 
-await loadOrgs()
-
+// initial page load
+await loadOrgs();
