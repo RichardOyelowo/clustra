@@ -17,12 +17,12 @@ function navItem(item, label, count, config, isActive) {
         case "organization":
             enabled = true;
             href = `/org.html/org_id=${config.orgId}`;
-            break
+            break;
 
         case "teams":
             enabled = true;
             href = `/org.html?org_id=${config.orgId}&team_id=${config.teamId}`;
-            break
+            break;
 
         case "projects":
             if (!config.teamId) {
@@ -103,14 +103,3 @@ export function renderSidebar(config) {
     // wire up logout AFTER innerHTML is set
     document.getElementById("sidebar_logout").addEventListener("click", logout);
 }
-
-
-renderSidebar({
-    orgId: 'test-123',
-    orgName: 'Acme Corp',
-    teamId: null,
-    projectId: null,
-    activePage: 'teams',
-    counts: { teams: 4, projects: 3, tasks: 2, milestones: 0 },
-    user: { initial: 'R', name: 'Richard', role: 'Org Owner' }
-})

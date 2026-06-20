@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organization — Clustra</title>
+    <link rel="stylesheet" href="/static/css/org.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/sidebar.js"></script>
+    <!-- <script type="module" src="/static/js/org.js"></script> -->
+
+    <!-- sidebar.js injects here -->
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+      <!-- HEADER -->
+      <header class="org_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" class="breadcrumb_link">Orgs</a>
+          <span class="breadcrumb_sep">/</span>
+          <span class="breadcrumb_current" id="breadcrumb_org_name">—</span>
+        </nav>
+        <div class="header_divider"></div>
+        <h1 class="page_title" id="org_name_title">—</h1>
+        <div class="header_actions">
+          <button type="button" class="btn_outline" id="edit_org_btn">
+            Edit
+          </button>
+          <button
+            type="button"
+            class="btn_outline btn_danger"
+            id="delete_org_btn"
+          >
+            Delete Org
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="content">
+        <!-- TEAMS -->
+        <section id="section_teams" class="content_section">
+          <div class="section_header">
+            <div>
+              <h2 class="section_title">Teams</h2>
+              <p class="section_sub">Manage the teams in this organization</p>
+            </div>
+            <button type="button" class="btn_primary" id="create_team_btn">
+              + New Team
+            </button>
+          </div>
+          <div id="teams_grid" class="teams_grid">
+            <p class="empty_state" id="teams_empty">
+              No teams yet. Create one to get started.
+            </p>
+          </div>
+        </section>
+
+        <!-- MEMBERS -->
+        <section id="section_members" class="content_section hidden">
+          <div class="section_header">
+            <div>
+              <h2 class="section_title">Members</h2>
+              <p class="section_sub">People with access to this organization</p>
+            </div>
+            <button type="button" class="btn_primary" id="add_member_btn">
+              + Add Member
+            </button>
+          </div>
+          <div class="members_table_wrap">
+            <table class="members_table">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Role</th>
+                  <th>Joined</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="members_tbody">
+                <tr>
+                  <td colspan="4" class="empty_state">No members found.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="section_settings" class="content_section hidden">
+          <div class="section_header">
+            <div>
+              <h2 class="section_title">Settings</h2>
+              <p class="section_sub">Update organization details</p>
+            </div>
+          </div>
+          <form id="settings_form" class="settings_form">
+            <div class="form_group">
+              <label for="settings_name">Name</label>
+              <input
+                type="text"
+                id="settings_name"
+                name="name"
+                placeholder="Organization name"
+              />
+            </div>
+            <div class="form_group">
+              <label for="settings_slug">Slug</label>
+              <input
+                type="text"
+                id="settings_slug"
+                name="slug"
+                placeholder="my-org"
+              />
+            </div>
+            <div class="form_group">
+              <label for="settings_desc">Description</label>
+              <textarea
+                id="settings_desc"
+                name="desc"
+                placeholder="Optional description"
+              ></textarea>
+            </div>
+            <div class="form_actions">
+              <button type="submit" class="btn_primary_inline">
+                Save Changes
+              </button>
+              <span
+                class="settings_feedback hidden"
+                id="settings_feedback"
+              ></span>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- MODAL: Create Team -->
+    <div id="create_team_modal" class="modal hidden">
+      <div class="modal_content">
+        <h2>New Team</h2>
+        <form id="create_team_form">
+          <input type="text" name="name" placeholder="Team name" required />
+          <input
+            type="text"
+            name="slug"
+            placeholder="Slug (e.g. backend)"
+            required
+          />
+          <textarea name="desc" placeholder="Description (optional)"></textarea>
+          <div class="modal_actions">
+            <button type="button" id="cancel_team_btn">Cancel</button>
+            <button type="submit">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Add Member -->
+    <div id="add_member_modal" class="modal hidden">
+      <div class="modal_content">
+        <h2>Add Member</h2>
+        <form id="add_member_form">
+          <input type="text" name="user_id" placeholder="User UUID" required />
+          <select name="role">
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+          </select>
+          <div class="modal_actions">
+            <button type="button" id="cancel_member_btn">Cancel</button>
+            <button type="submit">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Edit Org -->
+    <div id="edit_org_modal" class="modal hidden">
+      <div class="modal_content">
+        <h2>Edit Organization</h2>
+        <form id="edit_org_form">
+          <input
+            type="text"
+            name="name"
+            id="edit_org_name"
+            placeholder="Organization name"
+            required
+          />
+          <input
+            type="text"
+            name="slug"
+            id="edit_org_slug"
+            placeholder="Slug"
+            required
+          />
+          <textarea
+            name="desc"
+            id="edit_org_desc"
+            placeholder="Description (optional)"
+          ></textarea>
+          <div class="modal_actions">
+            <button type="button" id="cancel_edit_btn">Cancel</button>
+            <button type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
