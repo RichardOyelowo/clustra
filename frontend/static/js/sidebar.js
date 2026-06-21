@@ -16,12 +16,12 @@ function navItem(item, label, count, config, isActive) {
     switch (item) {
         case "organization":
             enabled = true;
-            href = `/org.html/org_id=${config.orgId}`;
+            href = `/org.html?org_id=${config.orgId}`;
             break;
 
         case "teams":
             enabled = true;
-            href = `/org.html?org_id=${config.orgId}&team_id=${config.teamId}`;
+            href = `/teams.html?org_id=${config.orgId}&section=teams`;
             break;
 
         case "projects":
@@ -30,22 +30,39 @@ function navItem(item, label, count, config, isActive) {
                 reason = "Select a team first";
             } else {
                 enabled = true;
-                href = `/team.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`;
+                href = `/projects.html?org_id=${config.orgId}&team_id=${config.teamId}`;
             }
             break;
 
         case "tasks":
+            if (!config.projectId) {
+                enabled = false;
+                reason = "Select a project first";
+            } else {
+                enabled = true;
+                href = `/tasks.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
+            }
+            break
         case "milestones":
+            if (!config.projectId) {
+                enabled = false
+                reason = "Select a project first"
+            } else {
+                enabled = true
+                href = `/milestones.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
+            }
+            break
         case "labels":
             if (!config.projectId) {
                 enabled = false;
                 reason = "Select a project first";
             } else {
                 enabled = true;
-                href = `/project.html?org=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`;
+                href = `/labels.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`;
             }
             break;
     }
+
     const countHTML =
         count !== undefined ? `<span class="nav_badge">${count}</span>` : "";
 
@@ -76,7 +93,7 @@ export function renderSidebar(config) {
                 ${navItem("tasks", "Tasks", config.counts.tasks, config, config.activePage === "tasks")}
                 ${navItem("milestones", "Milestones", config.counts.milestones, config, config.activePage === "milestones")}
                 ${navItem("labels", "Labels", undefined, config, config.activePage === "labels")}
-                <a href="/activity.html?id=${config.orgId}" class="nav_item ${config.activePage === "activity" ? "active" : ""}">
+                <a href="/activity.html?org_id=${config.orgId}" class="nav_item ${config.activePage === "activity" ? "active" : ""}">
                     <span>Activity</span>
                 </a>
             </nav>
@@ -103,3 +120,7 @@ export function renderSidebar(config) {
     // wire up logout AFTER innerHTML is set
     document.getElementById("sidebar_logout").addEventListener("click", logout);
 }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
