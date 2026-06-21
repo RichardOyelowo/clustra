@@ -120,7 +120,3 @@ export function renderSidebar(config) {
     // wire up logout AFTER innerHTML is set
     document.getElementById("sidebar_logout").addEventListener("click", logout);
 }
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
