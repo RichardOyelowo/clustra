@@ -7,13 +7,13 @@
     <link rel="stylesheet" href="/static/css/org.css" />
   </head>
   <body>
-    <script type="module" src="/static/js/sidebar.js"></script>
-    <!-- <script type="module" src="/static/js/org.js"></script> -->
+    <script type="module" src="/static/js/org.js"></script>
 
-    <!-- sidebar.js injects here -->
+    <!-- sidebar injected here -->
     <div id="sidebar_mount"></div>
 
     <div class="main">
+
       <!-- HEADER -->
       <header class="org_header">
         <nav class="breadcrumb">
@@ -21,118 +21,122 @@
           <span class="breadcrumb_sep">/</span>
           <span class="breadcrumb_current" id="breadcrumb_org_name">—</span>
         </nav>
-        <div class="header_divider"></div>
-        <h1 class="page_title" id="org_name_title">—</h1>
         <div class="header_actions">
-          <button type="button" class="btn_outline" id="edit_org_btn">
-            Edit
-          </button>
-          <button
-            type="button"
-            class="btn_outline btn_danger"
-            id="delete_org_btn"
-          >
-            Delete Org
-          </button>
+          <button type="button" class="btn_outline" id="edit_org_btn">Edit Org</button>
+          <button type="button" class="btn_outline btn_danger" id="delete_org_btn">Delete</button>
         </div>
       </header>
 
       <!-- CONTENT -->
-      <div class="content">
-        <!-- TEAMS -->
-        <section id="section_teams" class="content_section">
-          <div class="section_header">
-            <div>
-              <h2 class="section_title">Teams</h2>
-              <p class="section_sub">Manage the teams in this organization</p>
-            </div>
-            <button type="button" class="btn_primary" id="create_team_btn">
-              + New Team
-            </button>
-          </div>
-          <div id="teams_grid" class="teams_grid">
-            <p class="empty_state" id="teams_empty">
-              No teams yet. Create one to get started.
-            </p>
-          </div>
-        </section>
+      <div class="content" id="content">
 
-        <!-- MEMBERS -->
-        <section id="section_members" class="content_section hidden">
-          <div class="section_header">
-            <div>
-              <h2 class="section_title">Members</h2>
-              <p class="section_sub">People with access to this organization</p>
+        <!-- DASHBOARD TITLE ROW -->
+        <div class="dash_title_row">
+          <div>
+            <h1 class="dash_title" id="org_name_title">—</h1>
+            <p class="dash_sub" id="org_desc">—</p>
+          </div>
+          <div class="health_chips">
+            <div class="health_chip">
+              <span class="health_label">TEAMS</span>
+              <span class="health_value primary" id="stat_teams">—</span>
             </div>
-            <button type="button" class="btn_primary" id="add_member_btn">
-              + Add Member
-            </button>
+            <div class="health_chip">
+              <span class="health_label">MEMBERS</span>
+              <span class="health_value" id="stat_members">—</span>
+            </div>
           </div>
-          <div class="members_table_wrap">
-            <table class="members_table">
-              <thead>
-                <tr>
-                  <th>User ID</th>
-                  <th>Role</th>
-                  <th>Joined</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="members_tbody">
-                <tr>
-                  <td colspan="4" class="empty_state">No members found.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        </div>
 
-        <!-- SETTINGS -->
-        <section id="section_settings" class="content_section hidden">
-          <div class="section_header">
-            <div>
-              <h2 class="section_title">Settings</h2>
-              <p class="section_sub">Update organization details</p>
+        <!-- BENTO GRID -->
+        <div class="bento_grid">
+
+          <!-- TEAMS TABLE (left, large) -->
+          <div class="bento_card span_8">
+            <div class="card_header">
+              <h3 class="card_title">Teams</h3>
+              <button type="button" class="btn_primary" id="create_team_btn">+ New Team</button>
+            </div>
+            <div class="table_wrap">
+              <table class="data_table" id="teams_table">
+                <thead>
+                  <tr>
+                    <th>Team</th>
+                    <th>Slug</th>
+                    <th>Description</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="teams_tbody">
+                  <tr><td colspan="4" class="empty_state">No teams yet.</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
-          <form id="settings_form" class="settings_form">
-            <div class="form_group">
-              <label for="settings_name">Name</label>
-              <input
-                type="text"
-                id="settings_name"
-                name="name"
-                placeholder="Organization name"
-              />
+
+          <!-- ACTIVITY FEED (right, small) -->
+          <div class="bento_card span_4">
+            <div class="card_header">
+              <h3 class="card_title">Activity Feed</h3>
             </div>
-            <div class="form_group">
-              <label for="settings_slug">Slug</label>
-              <input
-                type="text"
-                id="settings_slug"
-                name="slug"
-                placeholder="my-org"
-              />
+            <div class="activity_list" id="activity_list">
+              <p class="empty_state">No recent activity.</p>
             </div>
-            <div class="form_group">
-              <label for="settings_desc">Description</label>
-              <textarea
-                id="settings_desc"
-                name="desc"
-                placeholder="Optional description"
-              ></textarea>
+          </div>
+
+          <!-- MEMBERS TABLE (left, medium) -->
+          <div class="bento_card span_6">
+            <div class="card_header">
+              <h3 class="card_title">Members</h3>
+              <button type="button" class="btn_primary" id="add_member_btn">+ Add Member</button>
             </div>
-            <div class="form_actions">
-              <button type="submit" class="btn_primary_inline">
-                Save Changes
-              </button>
-              <span
-                class="settings_feedback hidden"
-                id="settings_feedback"
-              ></span>
+            <div class="table_wrap">
+              <table class="data_table">
+                <thead>
+                  <tr>
+                    <th>User ID</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="members_tbody">
+                  <tr><td colspan="4" class="empty_state">No members found.</td></tr>
+                </tbody>
+              </table>
             </div>
-          </form>
-        </section>
+          </div>
+
+          <!-- ORG INFO CARD (right, medium) -->
+          <div class="bento_card span_6">
+            <div class="card_header">
+              <h3 class="card_title">Organization Info</h3>
+            </div>
+            <div class="org_info_list">
+              <div class="info_row">
+                <span class="info_label">Name</span>
+                <span class="info_value" id="info_name">—</span>
+              </div>
+              <div class="info_row">
+                <span class="info_label">Slug</span>
+                <span class="info_value mono" id="info_slug">—</span>
+              </div>
+              <div class="info_row">
+                <span class="info_label">Owner</span>
+                <span class="info_value mono" id="info_owner">—</span>
+              </div>
+              <div class="info_row">
+                <span class="info_label">Description</span>
+                <span class="info_value" id="info_desc">—</span>
+              </div>
+            </div>
+            <div class="danger_zone">
+              <span class="danger_label">Danger Zone</span>
+              <button type="button" class="btn_danger_solid" id="danger_delete_btn">Delete Organization</button>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
@@ -142,12 +146,7 @@
         <h2>New Team</h2>
         <form id="create_team_form">
           <input type="text" name="name" placeholder="Team name" required />
-          <input
-            type="text"
-            name="slug"
-            placeholder="Slug (e.g. backend)"
-            required
-          />
+          <input type="text" name="slug" placeholder="Slug (e.g. backend)" required />
           <textarea name="desc" placeholder="Description (optional)"></textarea>
           <div class="modal_actions">
             <button type="button" id="cancel_team_btn">Cancel</button>
@@ -180,25 +179,9 @@
       <div class="modal_content">
         <h2>Edit Organization</h2>
         <form id="edit_org_form">
-          <input
-            type="text"
-            name="name"
-            id="edit_org_name"
-            placeholder="Organization name"
-            required
-          />
-          <input
-            type="text"
-            name="slug"
-            id="edit_org_slug"
-            placeholder="Slug"
-            required
-          />
-          <textarea
-            name="desc"
-            id="edit_org_desc"
-            placeholder="Description (optional)"
-          ></textarea>
+          <input type="text" name="name" id="edit_org_name" placeholder="Organization name" required />
+          <input type="text" name="slug" id="edit_org_slug" placeholder="Slug" required />
+          <textarea name="desc" id="edit_org_desc" placeholder="Description (optional)"></textarea>
           <div class="modal_actions">
             <button type="button" id="cancel_edit_btn">Cancel</button>
             <button type="submit">Save</button>
@@ -206,5 +189,19 @@
         </form>
       </div>
     </div>
+
+    <!-- MODAL: Confirm Delete -->
+    <div id="delete_org_modal" class="modal hidden">
+      <div class="modal_content">
+        <h2>Delete Organization</h2>
+        <p class="modal_warning">This will permanently delete the organization and all its data. This cannot be undone.</p>
+        <div class="modal_actions">
+          <button type="button" id="cancel_delete_btn">Cancel</button>
+          <button type="button" class="btn_danger_solid" id="confirm_delete_btn">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+
   </body>
 </html>
+
