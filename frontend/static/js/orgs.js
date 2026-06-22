@@ -40,7 +40,7 @@ async function loadOrgs() {
             li.append(name, desc);
 
             li.addEventListener("click", () => {
-                window.location.href = `/org.html?id=${org.id}`;
+                window.location.href = `/org.html?org_id=${org.id}`;
             });
 
             // keyboard accessibility
@@ -48,7 +48,7 @@ async function loadOrgs() {
             li.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault()
-                    window.location.href = `/org.html?id=${org.id}`;
+                    window.location.href = `/org.html?org_id=${org.id}`;
                 }
             });
 
