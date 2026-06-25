@@ -36,7 +36,7 @@ class Organization(Base, TimeStamp):
         return f"<{self.name}, Organization id: {self.id}>"
 
 
-class OrganizationMember(Base):
+class OrganizationMember(Base, TimeStamp):
     __tablename__ = "organizationmembers"
     __table_args__ = (UniqueConstraint("org_id", "user_id", name="uq_org_member_user"),)
 

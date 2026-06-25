@@ -39,7 +39,7 @@ class Team(Base, TimeStamp):
         return f"<Team: {self.id}, Organization id: {self.org_id}>"
 
 
-class TeamMember(Base):
+class TeamMember(Base, TimeStamp):
     __tablename__ = "teammembers"
 
     id: Mapped[uuid.UUID] = mapped_column(
