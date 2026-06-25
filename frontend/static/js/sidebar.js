@@ -18,48 +18,27 @@ function navItem(item, label, count, config, isActive) {
             enabled = true;
             href = `/org.html?org_id=${config.orgId}`;
             break;
-
         case "teams":
             enabled = true;
             href = `/teams.html?org_id=${config.orgId}&section=teams`;
             break;
-
         case "projects":
-            if (!config.teamId) {
-                enabled = false;
-                reason = "Select a team first";
-            } else {
-                enabled = true;
-                href = `/projects.html?org_id=${config.orgId}&team_id=${config.teamId}`;
-            }
+            enabled = true;
+            href = `/projects.html?org_id=${config.orgId}`;
+            break;
+        case "tasks":
+            enabled = true;
+            href = `/tasks.html?org_id=${config.orgId}`;
             break;
 
-        case "tasks":
-            if (!config.projectId) {
-                enabled = false;
-                reason = "Select a project first";
-            } else {
-                enabled = true;
-                href = `/tasks.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
-            }
-            break
         case "milestones":
-            if (!config.projectId) {
-                enabled = false
-                reason = "Select a project first"
-            } else {
-                enabled = true
-                href = `/milestones.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
-            }
-            break
+            enabled = true;
+            href = `/milestones.html?org_id=${config.orgId}`;
+            break;
+
         case "labels":
-            if (!config.projectId) {
-                enabled = false;
-                reason = "Select a project first";
-            } else {
-                enabled = true;
-                href = `/labels.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`;
-            }
+            enabled = true;
+            href = `/labels.html?org_id=${config.orgId}`;
             break;
     }
 
