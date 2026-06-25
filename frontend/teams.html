@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teams — Clustra</title>
+    <link rel="stylesheet" href="/static/css/teams.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/teams.js"></script>
+
+    <!-- sidebar injected here -->
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+
+      <!-- HEADER -->
+      <header class="page_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Orgs</a>
+          <span class="breadcrumb_sep">/</span>
+          <!-- team switcher dropdown -->
+          <div class="team_switcher" id="team_switcher">
+            <button type="button" class="switcher_btn" id="switcher_btn">
+              <span id="switcher_team_name">—</span>
+              <span class="material-symbols-outlined switcher_icon">expand_more</span>
+            </button>
+            <div class="switcher_dropdown hidden" id="switcher_dropdown">
+              <!-- team list injected by teams.js -->
+            </div>
+          </div>
+        </nav>
+        <div class="header_meta">
+          <span class="member_count" id="member_count">— members</span>
+        </div>
+        <div class="header_actions">
+          <button type="button" class="btn_primary" id="new_project_btn">+ New Project</button>
+          <button type="button" class="btn_outline" id="add_member_btn">+ Add Member</button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="content">
+        <div class="bento_grid">
+
+          <!-- PROJECTS (span 8) -->
+          <div class="bento_card span_8">
+            <div class="card_header">
+              <h3 class="card_title">Active Projects</h3>
+              <a id="view_all_link" href="/projects.html" class="view_all">View All</a>
+            </div>
+            <div class="projects_list" id="projects_list">
+              <p class="empty_state">No projects yet. Create one to get started.</p>
+            </div>
+          </div>
+
+          <!-- TEAM MEMBERS (span 4) -->
+          <div class="bento_card span_4">
+            <div class="card_header">
+              <h3 class="card_title">Members</h3>
+            </div>
+            <div class="members_list" id="members_list">
+              <p class="empty_state">No members found.</p>
+            </div>
+          </div>
+
+          <!-- TEAM INFO (span 6) -->
+          <div class="bento_card span_6">
+            <div class="card_header">
+              <h3 class="card_title">Team Info</h3>
+              <button type="button" class="btn_outline_sm" id="edit_team_btn">Edit</button>
+            </div>
+            <div class="info_list">
+              <div class="info_row">
+                <span class="info_label">Name</span>
+                <span class="info_value" id="info_name">—</span>
+              </div>
+              <div class="info_row">
+                <span class="info_label">Slug</span>
+                <span class="info_value mono" id="info_slug">—</span>
+              </div>
+              <div class="info_row">
+                <span class="info_label">Description</span>
+                <span class="info_value" id="info_desc">—</span>
+              </div>
+              <div class="info_row">
+                <span class="info_label">Created</span>
+                <span class="info_value mono" id="info_created">—</span>
+              </div>
+            </div>
+            <div class="danger_zone">
+              <span class="danger_label">Danger Zone</span>
+              <button type="button" class="btn_danger_solid" id="delete_team_btn">Delete Team</button>
+            </div>
+          </div>
+
+          <!-- QUICK STATS (span 6) -->
+          <div class="bento_card span_6">
+            <div class="card_header">
+              <h3 class="card_title">At a Glance</h3>
+            </div>
+            <div class="stats_grid">
+              <div class="stat_item">
+                <span class="stat_value primary" id="stat_projects">—</span>
+                <span class="stat_label">Projects</span>
+              </div>
+              <div class="stat_item">
+                <span class="stat_value" id="stat_members">—</span>
+                <span class="stat_label">Members</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: New Project -->
+    <div id="new_project_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="new_project_title">
+      <div class="modal_content">
+        <h2 id="new_project_title">New Project</h2>
+        <form id="new_project_form">
+          <div class="form_fields">
+            <input type="text" name="name" placeholder="Project name" required />
+            <input type="text" name="slug" placeholder="Slug (e.g. api-refactor)" required />
+            <textarea name="desc" placeholder="Description (optional)"></textarea>
+          </div>
+          <div class="modal_actions">
+            <button type="button" id="cancel_project_btn">Cancel</button>
+            <button type="submit">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Add Member -->
+    <div id="add_member_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="add_member_title">
+      <div class="modal_content">
+        <h2 id="add_member_title">Add Team Member</h2>
+        <form id="add_member_form">
+          <div class="form_fields">
+            <input type="text" name="user_id" placeholder="User UUID" required />
+            <select name="role">
+              <option value="contributor">Contributor</option>
+              <option value="lead">Lead</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+          <div class="modal_actions">
+            <button type="button" id="cancel_member_btn">Cancel</button>
+            <button type="submit">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Edit Team -->
+    <div id="edit_team_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="edit_team_title">
+      <div class="modal_content">
+        <h2 id="edit_team_title">Edit Team</h2>
+        <form id="edit_team_form">
+          <div class="form_fields">
+            <input type="text" name="name" id="edit_name" placeholder="Team name" required />
+            <input type="text" name="slug" id="edit_slug" placeholder="Slug" required />
+            <textarea name="desc" id="edit_desc" placeholder="Description (optional)"></textarea>
+          </div>
+          <div class="modal_actions">
+            <button type="button" id="cancel_edit_btn">Cancel</button>
+            <button type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Confirm Delete Team -->
+    <div id="delete_team_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="delete_team_title">
+      <div class="modal_content">
+        <h2 id="delete_team_title">Delete Team</h2>
+        <p class="modal_warning">This will permanently delete the team and all its projects, tasks, and data. This cannot be undone.</p>
+        <div class="modal_actions">
+          <button type="button" id="cancel_delete_btn">Cancel</button>
+          <button type="button" class="btn_danger_solid" id="confirm_delete_btn">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
+
