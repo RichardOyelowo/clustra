@@ -10,7 +10,7 @@
 
 import { logout } from "./auth.js";
 
-function navItem(item, label, count, config, isActive) {
+function navItem(item, label, count, config, isActive, icon_name) {
     let enabled, href, reason;
 
     switch (item) {
@@ -48,10 +48,22 @@ function navItem(item, label, count, config, isActive) {
     if (!enabled) {
         return `<span class="nav_item disabled" title="${reason}"><span>${label}</span>${countHTML}</span>`;
     }
-    return `<a href="${href}" class="nav_item ${isActive ? "active" : ""}"><span>${label}</span>${countHTML}</a>`;
+    return `<a href="${href}" class="nav_item ${isActive ? "active" : ""}">
+                <span class="material-symbols-outlined nav_icon">${icon_name}</span>
+                <span>${label}</span>${countHTML}
+            </a>`;
 }
 
 export function renderSidebar(config) {
+    if (!document.getElementById("material-symbols")) {
+        const link = document.createElement("link");
+        link.id = "material-symbols";
+        link.rel = "stylesheet";
+        link.href =
+            "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined";
+        document.head.appendChild(link);
+    }
+
     const mount = document.getElementById("sidebar_mount");
 
     mount.innerHTML = `
@@ -66,13 +78,14 @@ export function renderSidebar(config) {
             
             <nav class="sidebar_nav">
                 <span class="nav_section">Workspace</span>
-                ${navItem("organization", "Organization", undefined, config, config.activePage === "org")}
-                ${navItem("teams", "Teams", config.counts.teams, config, config.activePage === "teams")}
-                ${navItem("projects", "Projects", config.counts.projects, config, config.activePage === "projects")}
-                ${navItem("tasks", "Tasks", config.counts.tasks, config, config.activePage === "tasks")}
-                ${navItem("milestones", "Milestones", config.counts.milestones, config, config.activePage === "milestones")}
-                ${navItem("labels", "Labels", undefined, config, config.activePage === "labels")}
+                ${navItem("organization", "Organization", undefined, config, config.activePage === "org", "corporate_fare")}
+                ${navItem("teams", "Teams", config.counts.teams, config, config.activePage === "teams", "groups")}
+                ${navItem("projects", "Projects", config.counts.projects, config, config.activePage === "projects", "account_tree")}
+                ${navItem("tasks", "Tasks", config.counts.tasks, config, config.activePage === "tasks", "task_alt")}
+                ${navItem("milestones", "Milestones", config.counts.milestones, config, config.activePage === "milestones", "flag")}
+                ${navItem("labels", "Labels", undefined, config, config.activePage === "labels", "label")}
                 <a href="/activity.html?org_id=${config.orgId}" class="nav_item ${config.activePage === "activity" ? "active" : ""}">
+                    <span class="material-symbols-outlined nav_icon">analytics</span>
                     <span>Activity</span>
                 </a>
             </nav>
@@ -80,9 +93,11 @@ export function renderSidebar(config) {
             <div class="sidebar_bottom">
                 <span class="nav_section">Settings</span>
                 <a href="/settings.html?org_id=${config.orgId}" class="nav_item ${config.activePage === "settings" ? "active" : ""}">
+                    <span class="material-symbols-outlined nav_icon">settings</span>
                     <span>Settings</span>
                 </a>
                 <a href="#" class="nav_item">
+                    <span class="material-symbols-outlined nav_icon">contact_support</span>
                     <span>Support</span>
                 </a>
                 <div class="user_row" id="sidebar_logout">
