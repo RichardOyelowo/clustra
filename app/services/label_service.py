@@ -5,7 +5,7 @@ from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..utils import normalize_payloads
 from ..utils import log_activity
-from ..models import Label, TaskLabel, ActivityType, ModelType
+from ..models import Label, Task, TaskLabel, ActivityType, ModelType
 from fastapi import HTTPException
 from sqlalchemy import select
 from uuid import UUID
@@ -225,6 +225,7 @@ class LabelService:
         self,
         org_id: UUID,
         team_id: UUID,
+        proj_id: UUID,
         label_id: UUID,
         data: TaskLabelCreate,
         current_user: UUID,
@@ -234,6 +235,30 @@ class LabelService:
 
         if org_member.role not in ORG_ADMIN_ROLES:
             await check_team_membership(team_id, current_user, TEAM_CONTRIBUTION_ROLES, db)
+
+        label_result = await db.execute(
+            select(Label).where(
+                Label.id == label_id,
+                Label.proj_id == proj_id,
+                Label.team_id == team_id,
+                Label.org_id == org_id,
+            )
+        )
+        label = label_result.scalar_one_or_none()
+        if not label:
+            raise HTTPException(status_code=404, detail="Label doesn't exist")
+
+        task_result = await db.execute(
+            select(Task).where(
+                Task.id == data.task_id,
+                Task.proj_id == proj_id,
+                Task.team_id == team_id,
+                Task.org_id == org_id,
+            )
+        )
+        task = task_result.scalar_one_or_none()
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
 
         result = await db.execute(
             select(TaskLabel).where(
@@ -269,6 +294,7 @@ class LabelService:
         self,
         org_id: UUID,
         team_id: UUID,
+        proj_id: UUID,
         label_id: UUID,
         current_user: UUID,
         db: AsyncSession,
@@ -277,6 +303,18 @@ class LabelService:
 
         if org_member.role not in ORG_ADMIN_ROLES:
             await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
+
+        label_result = await db.execute(
+            select(Label).where(
+                Label.id == label_id,
+                Label.proj_id == proj_id,
+                Label.team_id == team_id,
+                Label.org_id == org_id,
+            )
+        )
+        label = label_result.scalar_one_or_none()
+        if not label:
+            raise HTTPException(status_code=404, detail="Label doesn't exist")
 
         result = await db.execute(
             select(TaskLabel).where(TaskLabel.label_id == label_id))
@@ -288,6 +326,7 @@ class LabelService:
         self,
         org_id: UUID,
         team_id: UUID,
+        proj_id: UUID,
         label_id: UUID,
         task_label_id: UUID,
         current_user: UUID,
@@ -297,6 +336,18 @@ class LabelService:
 
         if org_member.role not in ORG_ADMIN_ROLES:
             await check_team_membership(team_id, current_user, TEAM_VIEW_ROLES, db)
+
+        label_result = await db.execute(
+            select(Label).where(
+                Label.id == label_id,
+                Label.proj_id == proj_id,
+                Label.team_id == team_id,
+                Label.org_id == org_id,
+            )
+        )
+        label = label_result.scalar_one_or_none()
+        if not label:
+            raise HTTPException(status_code=404, detail="Label doesn't exist")
 
         result = await db.execute(
             select(TaskLabel)
@@ -314,6 +365,7 @@ class LabelService:
         self,
         org_id: UUID,
         team_id: UUID,
+        proj_id: UUID,
         label_id: UUID,
         task_label_id: UUID,
         current_user: UUID,
@@ -323,6 +375,18 @@ class LabelService:
 
         if org_member.role not in ORG_ADMIN_ROLES:
             await check_team_membership(team_id, current_user, TEAM_CONTRIBUTION_ROLES, db)
+
+        label_result = await db.execute(
+            select(Label).where(
+                Label.id == label_id,
+                Label.proj_id == proj_id,
+                Label.team_id == team_id,
+                Label.org_id == org_id,
+            )
+        )
+        label = label_result.scalar_one_or_none()
+        if not label:
+            raise HTTPException(status_code=404, detail="Label doesn't exist")
 
         result = await db.execute(
             select(TaskLabel)
