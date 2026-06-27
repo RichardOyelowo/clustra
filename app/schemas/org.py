@@ -33,6 +33,7 @@ class OrganizationMemberCreate(BaseModel):
 
 
 class OrganizationMemberResponse(BaseResponse):
+    id: uuid.UUID
     user_id: uuid.UUID
     role: OrganizationMemberRole
     joined_at: datetime
