@@ -12,7 +12,7 @@ task_router = APIRouter(prefix="/orgs/{org_id}/teams/{team_id}/projects/{proj_id
 task_service = TaskService()
 
 
-@task_router.get("/", response_model=List[TaskResponse])
+@task_router.get("", response_model=List[TaskResponse])
 async def get_tasks(
     org_id: uuid.UUID,
     team_id: uuid.UUID,
@@ -23,7 +23,7 @@ async def get_tasks(
     return await task_service.get_tasks(org_id, team_id, proj_id, current_user.id, db)
 
 
-@task_router.post("/", response_model=TaskResponse)
+@task_router.post("", response_model=TaskResponse)
 async def create_task(
     org_id: uuid.UUID,
     team_id: uuid.UUID,
