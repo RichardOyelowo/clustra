@@ -12,7 +12,7 @@ proj_router = APIRouter(prefix="/orgs/{org_id}/teams/{team_id}/projects")
 proj_service = ProjectService()
 
 
-@proj_router.get("/", response_model=List[ProjectResponse])
+@proj_router.get("", response_model=List[ProjectResponse])
 async def get_projects(
     org_id: UUID,
     team_id: UUID,
@@ -22,7 +22,7 @@ async def get_projects(
     return await proj_service.get_projects(org_id, team_id, current_user.id, db)
 
 
-@proj_router.post("/", response_model=ProjectResponse)
+@proj_router.post("", response_model=ProjectResponse)
 async def create_projects(
     org_id: UUID,
     team_id: UUID,
