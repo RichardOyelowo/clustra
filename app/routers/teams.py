@@ -13,7 +13,7 @@ team_router = APIRouter(prefix="/orgs/{org_id}/teams")
 team_service = TeamService()
 
 
-@team_router.post("/", response_model=TeamResponse)
+@team_router.post("", response_model=TeamResponse)
 async def create_team(
     org_id: UUID,
     data: TeamCreate,
@@ -23,7 +23,7 @@ async def create_team(
     return await team_service.create_team(org_id, data, current_user.id, db)
 
 
-@team_router.get("/", response_model=List[TeamResponse])
+@team_router.get("", response_model=List[TeamResponse])
 async def get_teams(
     org_id: UUID,
     current_user=Depends(validate_user),
