@@ -16,7 +16,7 @@ async def create_org(auth_client, prefix):
 
 async def create_team(auth_client, org_id, prefix):
     response = await auth_client.post(
-        f"/orgs/{org_id}/teams/",
+        f"/orgs/{org_id}/teams",
         json={
             "name": f"{prefix}_team",
             "slug": f"{prefix}_team_{uuid.uuid4().hex}",
@@ -38,7 +38,7 @@ async def test_get_teams(auth_client):
     org = await create_org(auth_client, "test_get_teams")
     team = await create_team(auth_client, org["id"], "test_get_teams")
 
-    response = await auth_client.get(f"/orgs/{org['id']}/teams/")
+    response = await auth_client.get(f"/orgs/{org['id']}/teams")
     assert response.status_code == 200, response.json()
     assert response.json()[0]["id"] == team["id"]
 
