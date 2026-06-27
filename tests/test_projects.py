@@ -14,7 +14,7 @@ async def create_project_parent(auth_client, prefix):
     org = org_response.json()
 
     team_response = await auth_client.post(
-        f"/orgs/{org['id']}/teams/",
+        f"/orgs/{org['id']}/teams",
         json={
             "name": f"{prefix}_team",
             "slug": f"{prefix}_team_{uuid.uuid4().hex}",
@@ -27,7 +27,7 @@ async def create_project_parent(auth_client, prefix):
 
 async def create_project(auth_client, org_id, team_id, prefix):
     response = await auth_client.post(
-        f"/orgs/{org_id}/teams/{team_id}/projects/",
+        f"/orgs/{org_id}/teams/{team_id}/projects",
         json={
             "name": f"{prefix}_project",
             "desc": "this should be a successful project creation",
@@ -53,7 +53,7 @@ async def test_get_projects(auth_client):
         auth_client, org["id"], team["id"], "test_get_projects"
     )
 
-    response = await auth_client.get(f"/orgs/{org['id']}/teams/{team['id']}/projects/")
+    response = await auth_client.get(f"/orgs/{org['id']}/teams/{team['id']}/projects")
     assert response.status_code == 200, response.json()
     assert response.json()[0]["id"] == project["id"]
 
