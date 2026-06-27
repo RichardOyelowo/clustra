@@ -14,7 +14,7 @@ async def create_milestone_parent(auth_client, prefix):
     org = org_response.json()
 
     team_response = await auth_client.post(
-        f"/orgs/{org['id']}/teams/",
+        f"/orgs/{org['id']}/teams",
         json={
             "name": f"{prefix}_team",
             "slug": f"{prefix}_team_{uuid.uuid4().hex}",
@@ -25,7 +25,7 @@ async def create_milestone_parent(auth_client, prefix):
     team = team_response.json()
 
     project_response = await auth_client.post(
-        f"/orgs/{org['id']}/teams/{team['id']}/projects/",
+        f"/orgs/{org['id']}/teams/{team['id']}/projects",
         json={
             "name": f"{prefix}_project",
             "desc": "this should be a successful project creation",
@@ -38,7 +38,7 @@ async def create_milestone_parent(auth_client, prefix):
 
 async def create_milestone(auth_client, org_id, team_id, proj_id, prefix):
     response = await auth_client.post(
-        f"/orgs/{org_id}/teams/{team_id}/projects/{proj_id}/milestones/",
+        f"/orgs/{org_id}/teams/{team_id}/projects/{proj_id}/milestones",
         json={
             "title": f"{prefix}_milestone",
             "status": "pending",
@@ -68,7 +68,7 @@ async def test_get_milestones(auth_client):
     )
 
     response = await auth_client.get(
-        f"/orgs/{org['id']}/teams/{team['id']}/projects/{project['id']}/milestones/"
+        f"/orgs/{org['id']}/teams/{team['id']}/projects/{project['id']}/milestones"
     )
     assert response.status_code == 200, response.json()
     assert response.json()[0]["id"] == milestone["id"]
