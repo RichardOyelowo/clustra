@@ -14,7 +14,7 @@ milestone_router = APIRouter(
 milestone_service = MilestoneService()
 
 
-@milestone_router.get("/", response_model=List[MilestoneResponse])
+@milestone_router.get("", response_model=List[MilestoneResponse])
 async def get_milestones(
     org_id: UUID,
     team_id: UUID,
@@ -27,7 +27,7 @@ async def get_milestones(
     )
 
 
-@milestone_router.post("/", response_model=MilestoneResponse)
+@milestone_router.post("", response_model=MilestoneResponse)
 async def create_milestone(
     org_id: UUID,
     team_id: UUID,
