@@ -79,7 +79,7 @@ body {
     transition: transform 0.2s;
 }
 .team_switcher.open .switcher_icon {
-    transform: rotate(180deg);
+    transform: rotate(90deg);
 }
 
 .switcher_dropdown {
