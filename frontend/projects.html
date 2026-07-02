@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project — Clustra</title>
+    <link rel="stylesheet" href="/static/css/project.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/project.js"></script>
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+      <header class="page_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Org</a>
+          <span class="breadcrumb_sep">/</span>
+          <a href="#" id="breadcrumb_team_link" class="breadcrumb_link">Team</a>
+          <span class="breadcrumb_sep">/</span>
+          <div class="team_switcher" id="project_switcher">
+            <button type="button" class="switcher_btn" id="switcher_btn">
+              <span id="switcher_project_name">—</span>
+              <span class="material-symbols-outlined switcher_icon">expand_more</span>
+            </button>
+            <div class="switcher_dropdown hidden" id="switcher_dropdown"></div>
+          </div>
+        </nav>
+        <div class="header_badges">
+          <span class="status_badge" id="project_status">—</span>
+        </div>
+        <div class="header_actions">
+          <button type="button" class="btn_primary" id="new_task_btn">+ New Task</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- KANBAN BOARD -->
+        <div class="kanban_board" id="kanban_board">
+          <div class="kanban_col" id="col_pending">
+            <div class="col_header">
+              <span class="col_title">Backlog</span>
+              <span class="col_count" id="count_pending">0</span>
+              <button class="col_add_btn" data-status="pending">+</button>
+            </div>
+            <div class="col_cards" id="cards_pending"></div>
+          </div>
+          <div class="kanban_col" id="col_active">
+            <div class="col_header">
+              <span class="col_title">In Progress</span>
+              <span class="col_count" id="count_active">0</span>
+              <button class="col_add_btn" data-status="active">+</button>
+            </div>
+            <div class="col_cards" id="cards_active"></div>
+          </div>
+          <div class="kanban_col" id="col_completed">
+            <div class="col_header">
+              <span class="col_title">Done</span>
+              <span class="col_count" id="count_completed">0</span>
+              <button class="col_add_btn" data-status="completed">+</button>
+            </div>
+            <div class="col_cards" id="cards_completed"></div>
+          </div>
+          <div class="kanban_col" id="col_archived">
+            <div class="col_header">
+              <span class="col_title">Archived</span>
+              <span class="col_count" id="count_archived">0</span>
+              <button class="col_add_btn" data-status="archived">+</button>
+            </div>
+            <div class="col_cards" id="cards_archived"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: New Task -->
+    <div id="new_task_modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal_content">
+        <h2>New Task</h2>
+        <form id="new_task_form">
+          <div class="form_fields">
+            <input type="text" name="title" placeholder="Task title" required />
+            <textarea name="desc" placeholder="Description (optional)"></textarea>
+            <select name="priority">
+              <option value="low">Low Priority</option>
+              <option value="medium" selected>Medium Priority</option>
+              <option value="high">High Priority</option>
+              <option value="critical">Critical</option>
+            </select>
+            <input type="date" name="due_date" />
+          </div>
+          <div class="modal_actions">
+            <button type="button" id="cancel_task_btn">Cancel</button>
+            <button type="submit">Create Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
