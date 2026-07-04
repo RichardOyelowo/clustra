@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks — Clustra</title>
+    <link rel="stylesheet" href="/static/css/tasks.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/tasks.js"></script>
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+      <header class="page_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Org</a>
+          <span class="breadcrumb_sep">/</span>
+          <a href="#" id="breadcrumb_team_link" class="breadcrumb_link">Team</a>
+          <span class="breadcrumb_sep">/</span>
+          <a href="#" id="breadcrumb_project_link" class="breadcrumb_link">Project</a>
+          <span class="breadcrumb_sep">/</span>
+          <span class="breadcrumb_current">Tasks</span>
+        </nav>
+        <div class="header_actions">
+          <select id="filter_status" class="filter_select">
+            <option value="">All Statuses</option>
+            <option value="pending">Backlog</option>
+            <option value="active">In Progress</option>
+            <option value="completed">Done</option>
+            <option value="archived">Archived</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <select id="filter_priority" class="filter_select">
+            <option value="">All Priorities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+          <button type="button" class="btn_primary" id="new_task_btn">+ New Task</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="tasks_table_wrap">
+          <table class="tasks_table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Due Date</th>
+                <th>Assignee</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tasks_tbody">
+              <tr><td colspan="7" class="empty_state">No tasks yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: New Task -->
+    <div id="new_task_modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal_content">
+        <h2>New Task</h2>
+        <form id="new_task_form">
+          <div class="form_fields">
+            <input type="text" name="title" placeholder="Task title" required />
+            <textarea name="desc" placeholder="Description (optional)"></textarea>
+            <select name="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+            <input type="date" name="due_date" />
+          </div>
+          <div class="modal_actions">
+            <button type="button" id="cancel_task_btn">Cancel</button>
+            <button type="submit">Create Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
