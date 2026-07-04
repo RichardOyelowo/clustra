@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Labels — Clustra</title>
+    <link rel="stylesheet" href="/static/css/labels.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/labels.js"></script>
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+      <header class="page_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Org</a>
+          <span class="breadcrumb_sep">/</span>
+          <a href="#" id="breadcrumb_team_link" class="breadcrumb_link">Team</a>
+          <span class="breadcrumb_sep">/</span>
+          <a href="#" id="breadcrumb_project_link" class="breadcrumb_link">Project</a>
+          <span class="breadcrumb_sep">/</span>
+          <span class="breadcrumb_current">Labels</span>
+        </nav>
+        <div class="header_actions">
+          <button type="button" class="btn_primary" id="new_label_btn">+ New Label</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="labels_wrap">
+          <table class="labels_table">
+            <thead>
+              <tr>
+                <th>Label</th>
+                <th>Tasks</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="labels_tbody">
+              <tr><td colspan="3" class="empty_state">No labels yet. Create one to tag tasks.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: New Label -->
+    <div id="new_label_modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal_content">
+        <h2>New Label</h2>
+        <form id="new_label_form">
+          <div class="form_fields">
+            <input type="text" name="name" placeholder="Label name (e.g. bug, frontend)" required />
+            <div class="color_picker_row">
+              <label class="color_label">Color</label>
+              <input type="color" name="color" value="#38bdf8" class="color_input" />
+            </div>
+          </div>
+          <div class="modal_actions">
+            <button type="button" id="cancel_label_btn">Cancel</button>
+            <button type="submit">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
