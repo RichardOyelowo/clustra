@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings — Clustra</title>
+    <link rel="stylesheet" href="/static/css/settings.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/settings.js"></script>
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+      <header class="page_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Org</a>
+          <span class="breadcrumb_sep">/</span>
+          <span class="breadcrumb_current">Settings</span>
+        </nav>
+      </header>
+
+      <div class="content">
+
+        <!-- ORG SETTINGS -->
+        <div class="settings_section">
+          <div class="section_header">
+            <h2 class="section_title">Organization</h2>
+            <p class="section_sub">Update your organization's name, slug, and description.</p>
+          </div>
+          <form id="org_settings_form" class="settings_form">
+            <div class="form_group">
+              <label for="setting_name">Name</label>
+              <input type="text" id="setting_name" name="name" placeholder="Organization name" />
+            </div>
+            <div class="form_group">
+              <label for="setting_slug">Slug</label>
+              <input type="text" id="setting_slug" name="slug" placeholder="my-org" />
+              <span class="form_hint">Used in URLs. Lowercase letters, numbers, and hyphens only.</span>
+            </div>
+            <div class="form_group">
+              <label for="setting_desc">Description</label>
+              <textarea id="setting_desc" name="desc" placeholder="What does your organization do?"></textarea>
+            </div>
+            <div class="form_actions">
+              <button type="submit" class="btn_primary">Save Changes</button>
+              <span class="feedback_msg hidden" id="settings_feedback"></span>
+            </div>
+          </form>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="settings_divider"></div>
+
+        <!-- DANGER ZONE -->
+        <div class="settings_section danger_section">
+          <div class="section_header">
+            <h2 class="section_title danger_title">Danger Zone</h2>
+            <p class="section_sub">Irreversible actions. Proceed with caution.</p>
+          </div>
+          <div class="danger_card">
+            <div class="danger_item">
+              <div>
+                <div class="danger_item_title">Delete Organization</div>
+                <div class="danger_item_desc">Permanently deletes this organization, all teams, projects, and tasks. This cannot be undone.</div>
+              </div>
+              <button type="button" class="btn_danger" id="delete_org_btn">Delete Organization</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL: Confirm Delete -->
+    <div id="delete_org_modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal_content">
+        <h2>Delete Organization</h2>
+        <p class="modal_warning">This will permanently delete the organization and all its data. There is no going back.</p>
+        <div class="modal_actions">
+          <button type="button" id="cancel_delete_btn">Cancel</button>
+          <button type="button" class="btn_danger_modal" id="confirm_delete_btn">Yes, Delete Everything</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
