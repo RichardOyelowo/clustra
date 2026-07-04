@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activity — Clustra</title>
+    <link rel="stylesheet" href="/static/css/activity.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/activity.js"></script>
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+      <header class="page_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Org</a>
+          <span class="breadcrumb_sep">/</span>
+          <span class="breadcrumb_current">Activity</span>
+        </nav>
+        <div class="header_filters">
+          <select id="filter_action" class="filter_select">
+            <option value="">All Actions</option>
+            <option value="created">Created</option>
+            <option value="updated">Updated</option>
+            <option value="deleted">Deleted</option>
+          </select>
+          <select id="filter_model" class="filter_select">
+            <option value="">All Types</option>
+            <option value="organizations">Organization</option>
+            <option value="teams">Team</option>
+            <option value="projects">Project</option>
+            <option value="tasks">Task</option>
+            <option value="milestones">Milestone</option>
+            <option value="labels">Label</option>
+          </select>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="activity_feed" id="activity_feed">
+          <p class="empty_state">No activity yet.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
