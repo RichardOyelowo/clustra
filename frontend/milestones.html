@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Milestones — Clustra</title>
+    <link rel="stylesheet" href="/static/css/milestones.css" />
+  </head>
+  <body>
+    <script type="module" src="/static/js/milestones.js"></script>
+    <div id="sidebar_mount"></div>
+
+    <div class="main">
+      <header class="page_header">
+        <nav class="breadcrumb">
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Org</a>
+          <span class="breadcrumb_sep">/</span>
+          <a href="#" id="breadcrumb_team_link" class="breadcrumb_link">Team</a>
+          <span class="breadcrumb_sep">/</span>
+          <a href="#" id="breadcrumb_project_link" class="breadcrumb_link">Project</a>
+          <span class="breadcrumb_sep">/</span>
+          <span class="breadcrumb_current">Milestones</span>
+        </nav>
+        <div class="header_actions">
+          <button type="button" class="btn_primary" id="new_milestone_btn">+ New Milestone</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="milestones_list" id="milestones_list">
+          <p class="empty_state">No milestones yet. Create one to track project progress.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: New Milestone -->
+    <div id="new_milestone_modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal_content">
+        <h2>New Milestone</h2>
+        <form id="new_milestone_form">
+          <div class="form_fields">
+            <input type="text" name="title" placeholder="Milestone title" required />
+            <textarea name="desc" placeholder="Description (optional)"></textarea>
+            <input type="date" name="due_date" />
+          </div>
+          <div class="modal_actions">
+            <button type="button" id="cancel_milestone_btn">Cancel</button>
+            <button type="submit">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
