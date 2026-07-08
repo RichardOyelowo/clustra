@@ -18,28 +18,43 @@ function navItem(item, label, count, config, isActive, icon_name) {
             enabled = true;
             href = `/org.html?org_id=${config.orgId}`;
             break;
+
         case "teams":
             enabled = true;
             href = `/teams.html?org_id=${config.orgId}&section=teams`;
             break;
+
         case "projects":
-            enabled = true;
-            href = `/projects.html?org_id=${config.orgId}`;
-            break;
+            enabled = !!config.teamId
+            href = enabled 
+                ? `/project.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
+                : null
+            reason = "Create a team first"
+            break
+
         case "tasks":
-            enabled = true;
-            href = `/tasks.html?org_id=${config.orgId}`;
-            break;
+            enabled = !!config.projectId
+            href = enabled
+                ? `/tasks.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
+                : null
+            reason = "Create a project first"
+            break
 
         case "milestones":
-            enabled = true;
-            href = `/milestones.html?org_id=${config.orgId}`;
-            break;
+            enabled = !!config.projectId
+            href = enabled
+                ? `/milestones.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
+                : null
+            reason = "Create a project first"
+            break
 
         case "labels":
-            enabled = true;
-            href = `/labels.html?org_id=${config.orgId}`;
-            break;
+            enabled = !!config.projectId
+            href = enabled
+                ? `/labels.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
+                : null
+            reason = "Create a project first"
+            break
     }
 
     const countHTML =
