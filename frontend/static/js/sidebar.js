@@ -21,40 +21,36 @@ function navItem(item, label, count, config, isActive, icon_name) {
 
         case "teams":
             enabled = true;
-            href = `/teams.html?org_id=${config.orgId}&section=teams`;
+            href = `/teams.html?org_id=${config.orgId}`;
             break;
 
         case "projects":
-            enabled = !!config.teamId
-            href = enabled 
-                ? `/project.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
-                : null
-            reason = "Create a team first"
-            break
+            enabled = true;
+            href = config.projectId
+                ? `/projects.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
+                : `/projects.html?org_id=${config.orgId}`;
+            break;
 
         case "tasks":
-            enabled = !!config.projectId
-            href = enabled
+            enabled = true;
+            href = config.projectId
                 ? `/tasks.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
-                : null
-            reason = "Create a project first"
-            break
+                : `/tasks.html?org_id=${config.orgId}`;
+            break;
 
         case "milestones":
-            enabled = !!config.projectId
-            href = enabled
+            enabled = true;
+            href = config.projectId
                 ? `/milestones.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
-                : null
-            reason = "Create a project first"
-            break
+                : `/milestones.html?org_id=${config.orgId}`;
+            break;
 
         case "labels":
-            enabled = !!config.projectId
-            href = enabled
+            enabled = true;
+            href = config.projectId
                 ? `/labels.html?org_id=${config.orgId}&team_id=${config.teamId}&proj_id=${config.projectId}`
-                : null
-            reason = "Create a project first"
-            break
+                : `/labels.html?org_id=${config.orgId}`;
+            break;
     }
 
     const countHTML =
