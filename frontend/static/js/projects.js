@@ -41,13 +41,29 @@ async function init() {
         document.getElementById("breadcrumb_org_link").textContent =
             currentOrg.name;
 
-        document.getElementById("kanban_board").innerHTML =
-            '<p class="empty_state">No teams in this organization yet. <a href="/org.html?org_id=${orgId}">Create one</a></p>';
+        document.getElementById("content").innerHTML =
+            `<p class="empty_state">No teams in this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
         return;
     }
 
     currentTeam = teams[0];
     allProjects = await getProjects(orgId, currentTeam.id);
+
+    if (allProjects.length === 0) {
+        document.getElementById("kanban_board").innerHTML =
+            '<p class="empty_state">No projects in this team yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Create one</a></p>';
+        return;
+    }
+
+    currentProject = allProjects[0];
+    await loadProject();
+}
+
+async function loadProject() {
+    const tasksRes = await API.get(
+        `/orgs/${orgId}/teams/${currentTeam.id}/projects/${currentProject.id}/tasks`,
+    );
+    const tasks = tasksRes.ok ? await tasksRes.json() : [];
 
     // render sidebar + breadcrumb now that we have team context too
     renderSidebar({
@@ -80,34 +96,6 @@ async function init() {
             '<p class="empty_state">No projects in this team yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Create one</a></p>';
         return;
     }
-
-    currentProject = allProjects[0];
-    await loadProject();
-}
-
-async function loadProject() {
-    const tasksRes = await API.get(
-        `/orgs/${orgId}/teams/${currentTeam.id}/projects/${currentProject.id}/tasks`,
-    );
-    const tasks = tasksRes.ok ? await tasksRes.json() : [];
-
-    renderSidebar({
-        orgId,
-        orgName: currentOrg.name,
-        teamId: currentTeam.id,
-        projectId: currentProject.id,
-        activePage: "project",
-        counts: {
-            teams: allTeams.length,
-            projects: allProjects.length,
-            tasks: tasks.length,
-            milestones: 0,
-        },
-        user: { initial: "R", name: "Richard", role: "Team Lead" },
-    });
-
-    document.getElementById("switcher_project_name").textContent =
-        currentProject.name;
 
     renderProjectSwitcher();
     renderKanban(tasks);
