@@ -125,7 +125,7 @@ function renderTable(tasks) {
     tbody.querySelectorAll("[data-delete-id]").forEach((btn) => {
         btn.addEventListener("click", async () => {
             const taskId = btn.dataset.deleteId;
-            API.delete(
+            await API.delete(
                 `/orgs/${orgId}/teams/${currentTeam.id}/projects/${currentProject.id}/tasks/${taskId}`,
             );
             await loadTasks();
