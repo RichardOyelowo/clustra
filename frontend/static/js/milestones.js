@@ -17,15 +17,36 @@ let allProjects = [];
 async function init() {
     const [org, teams] = await Promise.all([getOrg(orgId), getTeams(orgId)]);
 
-    if (!org || teams.length === 0) {
+    if (!org) {
         console.error("failed to load org or no teams");
         return;
     }
 
     currentOrg = org;
     allTeams = teams;
-    currentTeam = teams[0];
 
+    if (allTeams.length === 0) {
+        renderSidebar({
+            orgId,
+            orgName: currentOrg.name,
+            teamId: null,
+            projectId: null,
+            activePage: "milestones",
+            counts: { teams: 0, projects: 0, tasks: 0, milestones: 0 },
+            user: { initial: "R", name: "Richard", role: "Team Lead" },
+        });
+
+        document.getElementById("breadcrumb_org_link").href =
+            `/org.html?org_id=${orgId}`;
+        document.getElementById("breadcrumb_org_link").textContent =
+            currentOrg.name;
+
+        document.getElementById("kanban_board").innerHTML =
+            '<p class="empty_state">No teams in this organization yet. <a href="/org.html?org_id=${orgId}">Create one</a></p>';
+        return;
+    }
+
+    currentTeam = teams[0];
     allProjects = await getProjects(orgId, currentTeam.id);
 
     if (allProjects.length === 0) {
@@ -34,7 +55,6 @@ async function init() {
     }
 
     currentProject = allProjects[0];
-
     await loadMilestones();
 }
 
