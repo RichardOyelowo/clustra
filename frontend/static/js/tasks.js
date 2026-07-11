@@ -32,7 +32,7 @@ async function init() {
             orgName: currentOrg.name,
             teamId: null,
             projectId: null,
-            activePage: "project",
+            activePage: "tasks",
             counts: { teams: 0, projects: 0, tasks: 0, milestones: 0 },
             user: { initial: "R", name: "Richard", role: "Team Lead" },
         });
