@@ -31,7 +31,7 @@ async function init() {
             orgName: currentOrg.name,
             teamId: null,
             projectId: null,
-            activePage: "project",
+            activePage: "projects",
             counts: { teams: 0, projects: 0, tasks: 0, milestones: 0 },
             user: { initial: "R", name: "Richard", role: "Team Lead" },
         });
@@ -41,8 +41,8 @@ async function init() {
         document.getElementById("breadcrumb_org_link").textContent =
             currentOrg.name;
 
-        document.getElementById("content").innerHTML =
-            `<p class="empty_state">No teams in this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
+        document.getElementById("kanban_board").innerHTML =
+            `<p class="empty_state">No teams In this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
         return;
     }
 
@@ -70,8 +70,8 @@ async function loadProject() {
         orgId,
         orgName: currentOrg.name,
         teamId: currentTeam.id,
-        projectId: null,
-        activePage: "project",
+        projectId: currentProject.id,
+        activePage: "projects",
         counts: {
             teams: allTeams.length,
             projects: allProjects.length,
@@ -93,7 +93,7 @@ async function loadProject() {
 
     if (allProjects.length === 0) {
         document.getElementById("kanban_board").innerHTML =
-            '<p class="empty_state">No projects in this team yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Create one</a></p>';
+            `<p class="empty_state">No projects in this team yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Create one</a></p>`;
         return;
     }
 
