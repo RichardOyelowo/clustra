@@ -170,3 +170,17 @@ button[type="submit"]:hover,
 .modal_actions button[type="submit"] {
     padding: 11px 24px;
 }
+
+.empty_state {
+    text-align: center;
+    color: var(--on-muted);
+    font-size: 14px;
+    padding: 60px 20px;
+    width: 100%;
+}
+.empty_state a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+.empty_state a:hover { text-decoration: underline; }
