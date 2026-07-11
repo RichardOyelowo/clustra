@@ -42,7 +42,7 @@ body { display: flex; height: 100vh; overflow: hidden; }
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
-    max-width: 700px;
+    min-width: 300px;
 }
 .labels_table {
     width: 100%;
