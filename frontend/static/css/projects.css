@@ -129,7 +129,6 @@ body { display: flex; height: 100vh; overflow: hidden; }
 }
 .btn_primary:hover { background: #7dd3fc; transform: translateY(-1px); }
 
-/* ── CONTENT ── */
 .content {
     flex: 1;
     overflow-x: auto;
@@ -138,12 +137,19 @@ body { display: flex; height: 100vh; overflow: hidden; }
     background: var(--bg);
 }
 
-/* ── KANBAN ── */
 .kanban_board {
     display: flex;
     gap: 16px;
     height: 100%;
     min-width: max-content;
+}
+
+.kanban_board > .empty_state {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 60px 0;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .kanban_col {
