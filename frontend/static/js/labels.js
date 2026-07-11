@@ -1,6 +1,6 @@
 import { requireAuth } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
-import { getOrg, getTeams, getProjects } from "./services.js";
+import { getOrg, getTeams, getProjects, getUser } from "./services.js";
 import API from "./api.js";
 
 requireAuth();
@@ -9,13 +9,14 @@ const params = new URLSearchParams(window.location.search);
 const orgId = params.get("org_id");
 
 let currentOrg = null;
+let currentUser = null;
 let currentTeam = null;
 let currentProject = null;
 let allTeams = [];
 let allProjects = [];
 
 async function init() {
-    const [org, teams] = await Promise.all([getOrg(orgId), getTeams(orgId)]);
+    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
 
     if (!org) {
         console.error("failed to load org");
@@ -24,6 +25,7 @@ async function init() {
 
     currentOrg = org;
     allTeams = teams;
+    currentUser = user;
 
     if (allTeams.length === 0) {
         renderSidebar({
@@ -33,7 +35,11 @@ async function init() {
             projectId: null,
             activePage: "labels",
             counts: { teams: 0, projects: 0, tasks: 0, milestones: 0 },
-            user: { initial: "R", name: "Richard", role: "Team Lead" },
+            user: {
+                initial: currentUser.username.charAt(0).toUpperCase(),
+                name: currentUser.username,
+                role: 'Member'
+            }
         });
 
         document.getElementById("breadcrumb_org_link").href =
@@ -76,7 +82,11 @@ async function loadLabels() {
             tasks: 0,
             milestones: 0,
         },
-        user: { initial: "R", name: "Richard", role: "Team Lead" },
+        user: {
+            initial: currentUser.username.charAt(0).toUpperCase(),
+            name: currentUser.username,
+            role: 'Member'
+        }
     });
 
     document.getElementById("breadcrumb_org_link").href =

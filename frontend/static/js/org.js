@@ -1,11 +1,13 @@
 import { requireAuth, logout } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
+import { getUser } from "./services.js";
 import API from "./api.js";
 
 requireAuth();
 
 const params = new URLSearchParams(window.location.search);
 const orgId = params.get("org_id");
+const user =  await getUser()
 
 async function loadOrgs() {
     const response = await API.get(`/orgs/${orgId}`);
@@ -112,10 +114,10 @@ async function init() {
             milestones: 0,
         },
         user: {
-            initial: "RO",
-            name: "Richard Oyelowo",
-            role: "Org Admin",
-        },
+            initial: user.username.charAt(0).toUpperCase(),
+            name: user.username,
+            role: 'Member'
+        }
     });
 
     const [teamsRes, orgMembersRes, activityRes] = await Promise.all([

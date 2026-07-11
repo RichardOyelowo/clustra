@@ -1,6 +1,6 @@
 import { requireAuth } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
-import { getOrg, getTeams, getProjects, getTeamMembers } from "./services.js";
+import { getUser, getOrg, getTeams, getProjects, getTeamMembers } from "./services.js";
 
 requireAuth();
 
@@ -9,11 +9,12 @@ const orgId = params.get("org_id");
 
 let allTeams = [];
 let currentOrg = null;
+let currentUser = null;
 let currentTeamId = null;
 
 async function init() {
     // fetch org and teams in parallel
-    const [org, teams] = await Promise.all([getOrg(orgId), getTeams(orgId)]);
+    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
 
     if (!org) {
         console.error("failed to load org");
@@ -22,6 +23,7 @@ async function init() {
 
     allTeams = teams;
     currentOrg = org;
+    currentUser = user;
 
     // default to first team
     if (allTeams.length === 0) {
@@ -59,7 +61,11 @@ async function loadTeam(teamId) {
             tasks: 0,
             milestones: 0,
         },
-        user: { initial: "R", name: "Richard", role: "Team Lead" },
+        user: {
+            initial: currentUser.username.charAt(0).toUpperCase(),
+            name: currentUser.username,
+            role: 'Member'
+        }
     });
 
     // populate switcher + header

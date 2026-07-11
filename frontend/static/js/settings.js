@@ -1,6 +1,6 @@
 import { requireAuth } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
-import { getOrg, getTeams } from "./services.js";
+import { getOrg, getTeams, getUser } from "./services.js";
 import API from "./api.js";
 
 requireAuth();
@@ -8,11 +8,12 @@ requireAuth();
 const params = new URLSearchParams(window.location.search);
 const orgId = params.get("org_id");
 
+let currentUser = null;
 let currentOrg = null;
 let allTeams = [];
 
 async function init() {
-    const [org, teams] = await Promise.all([getOrg(orgId), getTeams(orgId)]);
+    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
 
     if (!org) {
         console.error("failed to load org");
@@ -21,6 +22,7 @@ async function init() {
 
     currentOrg = org;
     allTeams = teams;
+    currentUser = user;
 
     renderSidebar({
         orgId,
@@ -34,7 +36,11 @@ async function init() {
             tasks: 0,
             milestones: 0,
         },
-        user: { initial: "R", name: "Richard", role: "Org Admin" },
+        user: {
+            initial: currentUser.username.charAt(0).toUpperCase(),
+            name: currentUser.username,
+            role: 'Member'
+        }
     });
 
     document.getElementById("breadcrumb_org_link").href =
