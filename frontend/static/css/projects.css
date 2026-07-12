@@ -63,7 +63,7 @@ body { display: flex; height: 100vh; overflow: hidden; }
     color: var(--on-muted);
     transition: transform 0.2s;
 }
-.team_switcher.open .switcher_icon { transform: rotate(180deg); }
+.team_switcher.open .switcher_icon { transform: rotate(90deg); }
 .switcher_dropdown {
     position: absolute;
     top: calc(100% + 6px);
