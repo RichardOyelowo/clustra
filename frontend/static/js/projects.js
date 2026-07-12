@@ -26,43 +26,61 @@ async function init() {
     currentOrg = org;
     allTeams = teams;
     currentUser = user;
+    currentTeam = teams[0] ?? null;
 
-    if (allTeams.length === 0) {
-        renderSidebar({
-            orgId,
-            orgName: currentOrg.name,
-            teamId: null,
-            projectId: null,
-            activePage: "projects",
-            counts: { teams: 0, projects: 0, tasks: 0, milestones: 0 },
-            user: { 
-                initial: currentUser.username.charAt(0).toUpperCase(), 
-                name: currentUser.username,
-                role: "Member" 
-            },
-        });
+    document.getElementById("breadcrumb_org_link").href =
+        `/org.html?org_id=${orgId}`;
+    document.getElementById("breadcrumb_org_link").textContent =
+        currentOrg.name;
 
-        document.getElementById("breadcrumb_org_link").href =
-            `/org.html?org_id=${orgId}`;
-        document.getElementById("breadcrumb_org_link").textContent =
-            currentOrg.name;
+    if (currentTeam) {
+        allProjects = await getProjects(orgId, currentTeam.id);
+        currentProject = allProjects[0] ?? null;
 
-        document.getElementById("kanban_board").innerHTML =
-            `<p class="empty_state">No teams In this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
-        return;
+        document.getElementById("breadcrumb_team_link").href =
+            `/teams.html?org_id=${orgId}&team_id=${currentTeam.id}`;
+        document.getElementById("breadcrumb_team_link").textContent =
+            currentTeam.name;
+
+        if (currentProject) {
+            document.getElementById("project_switcher").href =
+                `/projects.html?org_id=${orgId}&team_id=${currentTeam.id}&proj_id=${currentProject.id}`;
+            document.getElementById("project_switcher").textContent =
+                currentProject.name;
+        } else {
+            document.getElementById("project_switcher").href =
+                `/projects.html?org_id=${orgId}&team_id=${currentTeam.id}`;
+        }
     }
 
-    currentTeam = teams[0];
-    allProjects = await getProjects(orgId, currentTeam.id);
+    renderSidebar({
+        orgId,
+        orgName: currentOrg.name,
+        teamId: currentTeam?.id ?? null,
+        projectId: currentProject?.id ?? null,
+        activePage: "projects",
+        counts: {
+            teams: allTeams.length,
+            projects: allProjects.length,
+            tasks: 0,
+            milestones: 0,
+        },
+        user: {
+            initial: currentUser.username.charAt(0).toUpperCase(),
+            name: currentUser.username,
+            role: "Member",
+        },
+    });
 
-    if (allProjects.length === 0) {
-        document.getElementById("kanban_board").innerHTML =
-            '<p class="empty_state">No projects in this team yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Create one</a></p>';
-        return;
+    document.getElementById("kanban_board").innerHTML =
+        `<p class="empty_state">No teams In this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
+
+    if (!currentTeam || !currentProject) {
+        document.getElementById("kanban_board").innerHTML = 
+            `<p class="empty_state">No projects yet. <a href="/org.html?org_id=${orgId}">Get started</a></p>`
     }
 
-    currentProject = allProjects[0];
-    await loadProject();
+    await loadProject()
 }
 
 async function loadProject() {
@@ -90,16 +108,6 @@ async function loadProject() {
             role: "Member" 
         },
     });
-
-    document.getElementById("breadcrumb_org_link").href =
-        `/org.html?org_id=${orgId}`;
-    document.getElementById("breadcrumb_org_link").textContent =
-        currentOrg.name;
-
-    document.getElementById("breadcrumb_team_link").href =
-        `/teams.html?org_id=${orgId}&team_id=${currentTeam.id}`;
-    document.getElementById("breadcrumb_team_link").textContent =
-        currentTeam.name;
 
     if (allProjects.length === 0) {
         document.getElementById("kanban_board").innerHTML =
