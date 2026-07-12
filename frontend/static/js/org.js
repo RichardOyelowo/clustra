@@ -7,7 +7,6 @@ requireAuth();
 
 const params = new URLSearchParams(window.location.search);
 const orgId = params.get("org_id");
-const user =  await getUser()
 
 async function loadOrgs() {
     const response = await API.get(`/orgs/${orgId}`);
@@ -20,7 +19,6 @@ async function loadOrgs() {
     return await response.json();
 }
 
-// renders the teams table rows
 function renderTeams(teams) {
     const tbody = document.getElementById("teams_tbody");
 
@@ -43,7 +41,6 @@ function renderTeams(teams) {
         .join("");
 }
 
-// renders the members table rows
 function renderOrgMembers(orgMembers) {
     const tbody = document.getElementById("members_tbody");
 
@@ -66,38 +63,49 @@ function renderOrgMembers(orgMembers) {
         .join("");
 }
 
-// renders activity feed items
 function renderActivity(activities) {
-    const list = document.getElementById('activity_list')
+    const list = document.getElementById("activity_list");
 
     if (activities.length === 0) {
-        list.innerHTML = `<p class="empty_state">No recent activity.</p>`
-        return
+        list.innerHTML = `<p class="empty_state">No recent activity.</p>`;
+        return;
     }
 
     const icons = {
-        created: '✦',
-        updated: '✎',
-        deleted: '✕'
-    }
+        created: "✦",
+        updated: "✎",
+        deleted: "✕",
+    };
 
-    list.innerHTML = activities.map(a => `
+    list.innerHTML = activities
+        .map(
+            (a) => `
         <div class="activity_item">
-            <div class="activity_icon">${icons[a.action] ?? '⚡'}</div>
+            <div class="activity_icon">${icons[a.action] ?? "⚡"}</div>
             <div class="activity_body">
                 <div class="activity_text">
-                    <strong>${a.action}</strong> ${a.model_type.toLowerCase().replace('_', ' ')}
+                    <strong>${a.action}</strong> ${a.model_type.toLowerCase().replace("_", " ")}
                 </div>
                 <div class="activity_meta">
                     ${a.user_id.slice(0, 8)}... · ${new Date(a.created_at).toLocaleDateString()}
                 </div>
             </div>
         </div>
-    `).join('')
+    `,
+        )
+        .join("");
+}
+
+async function loadTeams() {
+    const teamsRes = await API.get(`/orgs/${orgId}/teams/`);
+    const teams = teamsRes.ok ? await teamsRes.json() : [];
+    document.getElementById("stat_teams").textContent = teams.length;
+    renderTeams(teams);
 }
 
 async function init() {
     const org = await loadOrgs();
+    const user = await getUser();
 
     if (!org) return;
 
@@ -116,37 +124,128 @@ async function init() {
         user: {
             initial: user.username.charAt(0).toUpperCase(),
             name: user.username,
-            role: 'Member'
-        }
+            role: "Member",
+        },
     });
 
-    const [teamsRes, orgMembersRes, activityRes] = await Promise.all([
-        API.get(`/orgs/${orgId}/teams/`),
+    const [orgMembersRes, activityRes] = await Promise.all([
         API.get(`/orgs/${orgId}/members`),
         API.get(`/orgs/${orgId}/activity`),
     ]);
 
-    const teams = teamsRes.ok ? await teamsRes.json() : [];
     const orgMembers = orgMembersRes.ok ? await orgMembersRes.json() : [];
     const activities = activityRes.ok ? await activityRes.json() : [];
 
-    // stat chips
-    document.getElementById("stat_teams").textContent = teams.length;
     document.getElementById("stat_members").textContent = orgMembers.length;
 
-    // org info card
     document.getElementById("info_name").textContent = org.name;
     document.getElementById("info_slug").textContent = org.slug;
     document.getElementById("info_owner").textContent = org.owner_id;
     document.getElementById("info_desc").textContent = org.desc ?? "—";
 
-    // render all three sections
-    renderTeams(teams);
+    await loadTeams();
     renderOrgMembers(orgMembers);
     renderActivity(activities);
 
     document.getElementById("org_name_title").textContent = org.name;
     document.getElementById("breadcrumb_org_name").textContent = org.name;
+
+    //teams modal
+    const createTeamModal = document.getElementById("create_team_modal");
+    const createTeamForm = document.getElementById("create_team_form");
+
+    document.getElementById("create_team_btn").addEventListener("click", () => {
+        createTeamModal.classList.remove("hidden");
+    });
+    document.getElementById("cancel_team_btn").addEventListener("click", () => {
+        createTeamModal.classList.add("hidden");
+    });
+
+    createTeamForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(createTeamForm);
+        const payload = {
+            name: formData.get("name"),
+            slug: formData.get("slug"),
+            desc: formData.get("desc") || null,
+        };
+        const res = await API.post(`/orgs/${orgId}/teams/`, payload);
+        if (res.ok) {
+            createTeamModal.classList.add("hidden");
+            createTeamForm.reset();
+            await loadTeams();
+        }
+    });
+
+    const addMemberModal = document.getElementById("add_member_modal");
+    const addMemberForm = document.getElementById("add_member_form");
+
+    document.getElementById("add_member_btn").addEventListener("click", () => {
+        addMemberModal.classList.remove("hidden");
+    });
+    document
+        .getElementById("cancel_member_btn")
+        .addEventListener("click", () => {
+            addMemberModal.classList.add("hidden");
+        });
+
+    addMemberForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(addMemberForm);
+        const payload = {
+            user_id: formData.get("user_id"),
+            role: formData.get("role"),
+        };
+        const res = await API.post(`/orgs/${orgId}/members`, payload);
+        if (res.ok) {
+            addMemberModal.classList.add("hidden");
+            addMemberForm.reset();
+            // re-fetch and re-render members inline since no loadMembers()
+            const membersRes = await API.get(`/orgs/${orgId}/members`);
+            const members = membersRes.ok ? await membersRes.json() : [];
+            document.getElementById("stat_members").textContent =
+                members.length;
+            renderOrgMembers(members);
+        }
+    });
+
+    const editOrgModal = document.getElementById("edit_org_modal");
+    const editOrgForm = document.getElementById("edit_org_form");
+
+    document.getElementById("edit_org_btn").addEventListener("click", () => {
+        // pre-fill with current values
+        document.getElementById("edit_org_name").value = org.name;
+        document.getElementById("edit_org_slug").value = org.slug;
+        document.getElementById("edit_org_desc").value = org.desc ?? "";
+        editOrgModal.classList.remove("hidden");
+    });
+    document.getElementById("cancel_edit_btn").addEventListener("click", () => {
+        editOrgModal.classList.add("hidden");
+    });
+
+    editOrgForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(editOrgForm);
+        const payload = {
+            name: formData.get("name"),
+            slug: formData.get("slug"),
+            desc: formData.get("desc") || null,
+        };
+        const res = await API.patch(`/orgs/${orgId}`, payload);
+        if (res.ok) {
+            const updated = await res.json();
+            editOrgModal.classList.add("hidden");
+            // update header and info card with new values
+            document.getElementById("org_name_title").textContent =
+                updated.name;
+            document.getElementById("breadcrumb_org_name").textContent =
+                updated.name;
+            document.getElementById("info_name").textContent = updated.name;
+            document.getElementById("info_slug").textContent = updated.slug;
+            document.getElementById("info_desc").textContent =
+                updated.desc ?? "—";
+        }
+    });
 }
 
 init();
