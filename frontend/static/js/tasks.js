@@ -20,45 +20,58 @@ async function init() {
     const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
 
     if (!org) {
-        console.error("failed to load org or no teams");
+        console.error("failed to load org");
         return;
     }
 
     currentOrg = org;
     allTeams = teams;
-    currentUser = user
+    currentUser = user;
+    currentTeam = teams[0] ?? null;
 
-    if (allTeams.length === 0) {
-        renderSidebar({
-            orgId,
-            orgName: currentOrg.name,
-            teamId: null,
-            projectId: null,
-            activePage: "tasks",
-            counts: { teams: 0, projects: 0, tasks: 0, milestones: 0 },
-            user: {
-                initial: currentUser.username.charAt(0).toUpperCase(),
-                name: user.username,
-                role: 'Member'
-            }
-        });
+    document.getElementById("breadcrumb_org_link").href =
+        `/org.html?org_id=${orgId}`;
+    document.getElementById("breadcrumb_org_link").textContent =
+        currentOrg.name;
 
-        document.getElementById("breadcrumb_org_link").href =
-            `/org.html?org_id=${orgId}`;
-        document.getElementById("breadcrumb_org_link").textContent =
-            currentOrg.name;
-        return;
+    if (currentTeam) {
+        allProjects = await getProjects(orgId, currentTeam.id);
+        currentProject = allProjects[0] ?? null;
+
+        document.getElementById("breadcrumb_team_link").href =
+            `/teams.html?org_id=${orgId}&team_id=${currentTeam.id}`;
+        document.getElementById("breadcrumb_team_link").textContent =
+            currentTeam.name;
+
+        if (currentProject) {
+            document.getElementById("breadcrumb_project_link").href =
+                `/projects.html?org_id=${orgId}&team_id=${currentTeam.id}&proj_id=${currentProject.id}`;
+            document.getElementById("breadcrumb_project_link").textContent =
+                currentProject.name;
+        } else {
+            document.getElementById("breadcrumb_project_link").href =
+                `/projects.html?org_id=${orgId}&team_id=${currentTeam.id}`;
+        }
     }
 
-    currentTeam = teams[0];
-    allProjects = await getProjects(orgId, currentTeam.id);
-
-    if (allProjects.length === 0) {
-        console.error("no projects in this team");
-        return;
-    }
-
-    currentProject = allProjects[0];
+    renderSidebar({
+        orgId,
+        orgName: currentOrg.name,
+        teamId: currentTeam?.id ?? null,
+        projectId: currentProject?.id ?? null,
+        activePage: "tasks",
+        counts: {
+            teams: allTeams.length,
+            projects: allProjects.length,
+            tasks: 0,
+            milestones: 0,
+        },
+        user: {
+            initial: currentUser.username.charAt(0).toUpperCase(),
+            name: currentUser.username,
+            role: "Member",
+        },
+    });
 
     await loadTasks();
 }
@@ -68,41 +81,6 @@ async function loadTasks() {
         `/orgs/${orgId}/teams/${currentTeam.id}/projects/${currentProject.id}/tasks`,
     );
     allTasks = tasksRes.ok ? await tasksRes.json() : [];
-
-    renderSidebar({
-        orgId,
-        orgName: currentOrg.name,
-        teamId: currentTeam.id,
-        projectId: currentProject.id,
-        activePage: "tasks",
-        counts: {
-            teams: allTeams.length,
-            projects: allProjects.length,
-            tasks: allTasks.length,
-            milestones: 0,
-        },
-        user: {
-            initial: currentUser.username.charAt(0).toUpperCase(),
-            name: currentUser.username,
-            role: 'Member'
-        }
-    });
-
-    // populate breadcrumb — same pattern as project.js
-    document.getElementById("breadcrumb_org_link").href =
-        `/org.html?org_id=${orgId}`;
-    document.getElementById("breadcrumb_org_link").textContent =
-        currentOrg.name;
-
-    document.getElementById("breadcrumb_team_link").href =
-        `/teams.html?org_id=${orgId}&team_id=${currentTeam.id}`;
-    document.getElementById("breadcrumb_team_link").textContent =
-        currentTeam.name;
-
-    document.getElementById("breadcrumb_project_link").href =
-        `/project.html?org_id=${orgId}&team_id=${currentTeam.id}&proj_id=${currentProject.id}`;
-    document.getElementById("breadcrumb_project_link").textContent =
-        currentProject.name;
 
     renderTable(allTasks);
 }
