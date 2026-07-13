@@ -89,26 +89,6 @@ async function loadProject() {
     );
     const tasks = tasksRes.ok ? await tasksRes.json() : [];
 
-    // render sidebar + breadcrumb now that we have team context too
-    renderSidebar({
-        orgId,
-        orgName: currentOrg.name,
-        teamId: currentTeam.id,
-        projectId: currentProject.id,
-        activePage: "projects",
-        counts: {
-            teams: allTeams.length,
-            projects: allProjects.length,
-            tasks: 0,
-            milestones: 0,
-        },
-        user: { 
-            initial: currentUser.username.charAt(0).toUpperCase(), 
-            name: currentUser.username,
-            role: "Member" 
-        },
-    });
-
     if (allProjects.length === 0) {
         document.getElementById("kanban_board").innerHTML =
             `<p class="empty_state">No projects in this team yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Create one</a></p>`;
