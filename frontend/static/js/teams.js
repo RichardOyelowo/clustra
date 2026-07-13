@@ -1,6 +1,13 @@
+import API from "./api.js";
 import { requireAuth } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
-import { getUser, getOrg, getTeams, getProjects, getTeamMembers } from "./services.js";
+import {
+    getUser,
+    getOrg,
+    getTeams,
+    getProjects,
+    getTeamMembers,
+} from "./services.js";
 
 requireAuth();
 
@@ -11,35 +18,6 @@ let allTeams = [];
 let currentOrg = null;
 let currentUser = null;
 let currentTeamId = null;
-
-async function init() {
-    // fetch org and teams in parallel
-    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
-
-    if (!org) {
-        console.error("failed to load org");
-        return;
-    }
-
-    allTeams = teams;
-    currentOrg = org;
-    currentUser = user;
-
-    // default to first team
-    if (allTeams.length === 0) {
-        document.getElementById("switcher_team_name").textContent =
-            "No teams yet";
-        currentTeamId = null;
-    } else {
-        currentTeamId = allTeams[0].id;
-    }
-
-    // populate breadcrumb org link
-    const orgLink = document.getElementById("breadcrumb_org_link");
-    orgLink.href = `/org.html?org_id=${orgId}`;
-
-    await loadTeam(currentTeamId);
-}
 
 async function loadTeam(teamId) {
     const [projects, members] = await Promise.all([
@@ -64,8 +42,8 @@ async function loadTeam(teamId) {
         user: {
             initial: currentUser.username.charAt(0).toUpperCase(),
             name: currentUser.username,
-            role: 'Member'
-        }
+            role: "Member",
+        },
     });
 
     // populate switcher + header
@@ -194,5 +172,181 @@ switcherBtn.addEventListener("click", (e) => {
 
 // close when clicking outside
 document.addEventListener("click", () => closeSwitcher());
+
+async function init() {
+    // fetch org and teams in parallel
+    const [org, teams, user] = await Promise.all([
+        getOrg(orgId),
+        getTeams(orgId),
+        getUser(),
+    ]);
+
+    if (!org) {
+        console.error("failed to load org");
+        return;
+    }
+
+    allTeams = teams;
+    currentOrg = org;
+    currentUser = user;
+
+    // default to first team
+    if (allTeams.length === 0) {
+        document.getElementById("switcher_team_name").textContent =
+            "No teams yet";
+        currentTeamId = null;
+    } else {
+        currentTeamId = allTeams[0].id;
+    }
+
+    // populate breadcrumb org link
+    const orgLink = document.getElementById("breadcrumb_org_link");
+    orgLink.href = `/org.html?org_id=${orgId}`;
+
+    await loadTeam(currentTeamId);
+
+    // ── New Project Modal ──
+    const newProjectModal = document.getElementById("new_project_modal");
+    const newProjectForm = document.getElementById("new_project_form");
+
+    document.getElementById("new_project_btn").addEventListener("click", () => {
+        newProjectModal.classList.remove("hidden");
+    });
+    document
+        .getElementById("cancel_project_btn")
+        .addEventListener("click", () => {
+            newProjectModal.classList.add("hidden");
+        });
+
+    newProjectForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(newProjectForm);
+        const payload = {
+            name: formData.get("name"),
+            desc: formData.get("desc") || null,
+        };
+        const res = await API.post(
+            `/orgs/${orgId}/teams/${currentTeamId}/projects`,
+            payload,
+        );
+
+        if (!res.ok) {
+            console.log("Status:", res.status);
+            console.log(await res.json());
+        }
+
+        if (res.ok) {
+            newProjectModal.classList.add("hidden");
+            newProjectForm.reset();
+            await loadTeam(currentTeamId);
+        }
+    });
+
+    // ── Add Member Modal ──
+    const addMemberModal = document.getElementById("add_member_modal");
+    const addMemberForm = document.getElementById("add_member_form");
+
+    document.getElementById("add_member_btn").addEventListener("click", () => {
+        addMemberModal.classList.remove("hidden");
+    });
+    document
+        .getElementById("cancel_member_btn")
+        .addEventListener("click", () => {
+            addMemberModal.classList.add("hidden");
+        });
+
+    addMemberForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(addMemberForm);
+        const payload = {
+            user_id: formData.get("user_id"),
+            role: formData.get("role"),
+        };
+        const res = await API.post(
+            `/orgs/${orgId}/teams/${currentTeamId}/members`,
+            payload,
+        );
+        
+        if (!res.ok) {
+            console.log("Status:", res.status);
+            console.log(await res.json());
+        }
+
+        if (res.ok) {
+            addMemberModal.classList.add("hidden");
+            addMemberForm.reset();
+            await loadTeam(currentTeamId);
+        }
+    });
+
+    // ── Edit Team Modal ──
+    const editTeamModal = document.getElementById("edit_team_modal");
+    const editTeamForm = document.getElementById("edit_team_form");
+
+    document.getElementById("edit_team_btn").addEventListener("click", () => {
+        const team = allTeams.find((t) => t.id === currentTeamId);
+        document.getElementById("edit_name").value = team.name;
+        document.getElementById("edit_slug").value = team.slug;
+        document.getElementById("edit_desc").value = team.desc ?? "";
+        editTeamModal.classList.remove("hidden");
+    });
+    document.getElementById("cancel_edit_btn").addEventListener("click", () => {
+        editTeamModal.classList.add("hidden");
+    });
+
+    editTeamForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(editTeamForm);
+        const payload = {
+            name: formData.get("name"),
+            slug: formData.get("slug"),
+            desc: formData.get("desc") || null,
+        };
+        const res = await API.patch(
+            `/orgs/${orgId}/teams/${currentTeamId}`,
+            payload,
+        );
+
+        
+        if (!res.ok) {
+            console.log("Status:", res.status);
+            console.log(await res.json());
+        }
+
+        if (res.ok) {
+            editTeamModal.classList.add("hidden");
+            await loadTeam(currentTeamId);
+        }
+    });
+
+    // ── Delete Team Modal ──
+    const deleteTeamModal = document.getElementById("delete_team_modal");
+
+    document.getElementById("delete_team_btn").addEventListener("click", () => {
+        deleteTeamModal.classList.remove("hidden");
+    });
+    document
+        .getElementById("cancel_delete_btn")
+        .addEventListener("click", () => {
+            deleteTeamModal.classList.add("hidden");
+        });
+
+    document
+        .getElementById("confirm_delete_btn")
+        .addEventListener("click", async () => {
+            const res = await API.delete(
+                `/orgs/${orgId}/teams/${currentTeamId}`,
+            );
+            
+            if (!res.ok) {
+                console.log("Status:", res.status);
+                console.log(await res.json());
+            }
+
+            if (res.ok) {
+                window.location.href = `/org.html?org_id=${orgId}`;
+            }
+        });
+}
 
 init();
