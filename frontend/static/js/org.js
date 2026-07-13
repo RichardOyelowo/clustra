@@ -177,6 +177,7 @@ async function init() {
         }
     });
 
+    // Org members modal
     const addMemberModal = document.getElementById("add_member_modal");
     const addMemberForm = document.getElementById("add_member_form");
 
@@ -209,6 +210,7 @@ async function init() {
         }
     });
 
+    // edit org modal
     const editOrgModal = document.getElementById("edit_org_modal");
     const editOrgForm = document.getElementById("edit_org_form");
 
@@ -246,6 +248,27 @@ async function init() {
                 updated.desc ?? "—";
         }
     });
+
+    // delete org modal
+    const deleteOrgModal = document.getElementById("delete_org_modal");
+
+    document.getElementById("delete_org_btn").addEventListener("click", () => {
+        deleteOrgModal.classList.remove("hidden");
+    });
+    document
+        .getElementById("cancel_delete_btn")
+        .addEventListener("click", () => {
+            deleteOrgModal.classList.add("hidden");
+        });
+
+    document
+        .getElementById("confirm_delete_btn")
+        .addEventListener("click", async () => {
+            const res = await API.delete(`/orgs/${orgId}`);
+            if (res.ok) {
+                window.location.href = "/orgs.html";
+            }
+        });
 }
 
 init();
