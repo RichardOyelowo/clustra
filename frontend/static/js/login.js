@@ -7,7 +7,7 @@ form.addEventListener("submit", async function (event) {
     const password = form.password.value;
 
     const body = new URLSearchParams();
-    body.append("full_name", email);
+    body.append("username", email);
     body.append("password", password);
 
     const response = await fetch("/login", {

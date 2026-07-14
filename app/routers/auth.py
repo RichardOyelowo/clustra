@@ -23,5 +23,5 @@ async def login(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         oauth: OAuthHandler = Depends(get_oauth)
 ):
-    tokens = await auth_service.login(form_data.full_name, form_data.password, oauth)
+    tokens = await auth_service.login(form_data.username, form_data.password, oauth)
     return tokens
