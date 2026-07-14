@@ -6,7 +6,6 @@ import uuid
 class ProjectCreate(BaseModel):
     name: str
     desc: str | None = None
-    team_id: uuid.UUID
 
 
 class ProjectUpdate(BaseModel):

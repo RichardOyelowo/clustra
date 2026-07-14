@@ -286,7 +286,6 @@ async function init() {
     document.getElementById("edit_team_btn").addEventListener("click", () => {
         const team = allTeams.find((t) => t.id === currentTeamId);
         document.getElementById("edit_name").value = team.name;
-        document.getElementById("edit_slug").value = team.slug;
         document.getElementById("edit_desc").value = team.desc ?? "";
         editTeamModal.classList.remove("hidden");
     });
