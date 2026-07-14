@@ -32,6 +32,10 @@ import API from "./api.js";
  *
  * @function getUser - Get current user information
  * @returns {Promise<Object|null>} User data or null if not authenticated
+ *
+ * @function getUserInfo - Get user information
+ * @returns {Promise<Object|null>} User data or null if not authenticated
+
  */
 
 export async function getOrg(orgId) {
@@ -61,5 +65,10 @@ export async function getTeamMembers(orgId, teamId) {
 
 export async function getUser() {
     const res = await API.get(`/user/me`);
+    return res.ok ? await res.json() : null;
+}
+
+export async function getUserInfo(userId) {
+    const res = await API.get(`user/${userId}`);
     return res.ok ? await res.json() : null;
 }
