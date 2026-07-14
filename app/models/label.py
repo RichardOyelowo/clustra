@@ -46,6 +46,7 @@ class TaskLabel(Base, TimeStamp):
         unique=True,
         nullable=False,
     )
+    color: Mapped[str] = mapped_column(String, nullable=False)
     label_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("labels.id", ondelete="CASCADE")
     )
