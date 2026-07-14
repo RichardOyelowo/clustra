@@ -4,7 +4,7 @@ form.addEventListener("submit", async function (event) {
     event.preventDefault();
 
     const email = form.email.value;
-    const username = form.username.value;
+    const full_name = form.full_name.value;
     const plain_password = form.password.value;
 
     const response = await fetch("/signup", {
@@ -14,7 +14,7 @@ form.addEventListener("submit", async function (event) {
         },
         body: JSON.stringify({
             email: email,
-            username: username,
+            full_name: full_name,
             plain_password: plain_password,
         }),
     });
@@ -27,7 +27,7 @@ form.addEventListener("submit", async function (event) {
     }
 
     const loginBody = new URLSearchParams();
-    loginBody.append("username", email);
+    loginBody.append("full_name", email);
     loginBody.append("password", plain_password);
 
     const loginResponse = await fetch("/login", {

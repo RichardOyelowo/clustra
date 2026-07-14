@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('email', sa.String(length=300), nullable=False),
-    sa.Column('username', sa.String(length=60), nullable=False),
+    sa.Column('full_name', sa.String(length=60), nullable=False),
     sa.Column('password_hash', sa.String(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
@@ -32,7 +32,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('id'),
-    sa.UniqueConstraint('username')
+    sa.UniqueConstraint('full_name')
     )
     op.create_table('organizations',
     sa.Column('id', sa.UUID(), nullable=False),

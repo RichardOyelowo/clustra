@@ -40,8 +40,8 @@ async function loadTeam(teamId) {
             milestones: 0,
         },
         user: {
-            initial: currentUser.username.charAt(0).toUpperCase(),
-            name: currentUser.username,
+            initial: currentUser.full_name.charAt(0).toUpperCase(),
+            name: currentUser.full_name,
             role: "Member",
         },
     });

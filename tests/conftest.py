@@ -53,11 +53,11 @@ async def client(engine):
 async def auth_client(client):
     await client.post("/signup", json={
         "email": "testuser@clustra.com",
-        "username": "testuser",
+        "full_name": "testuser",
         "plain_password": "testpass123"
     })
     response = await client.post("/login", data={
-        "username": "testuser@clustra.com",
+        "full_name": "testuser@clustra.com",
         "password": "testpass123"
     })
 

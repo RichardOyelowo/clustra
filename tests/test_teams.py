@@ -85,7 +85,7 @@ async def test_add_team_member(auth_client):
         "/signup",
         json={
             "email": f"team_member_{suffix}@clustra.com",
-            "username": f"team_member_{suffix}",
+            "full_name": f"team_member_{suffix}",
             "plain_password": "richpass123",
         },
     )
@@ -119,7 +119,7 @@ async def test_get_team_member(auth_client):
         "/signup",
         json={
             "email": f"get_team_member_{suffix}@clustra.com",
-            "username": f"get_team_member_{suffix}",
+            "full_name": f"get_team_member_{suffix}",
             "plain_password": "richpass123",
         },
     )
@@ -145,7 +145,7 @@ async def test_remove_team_member(auth_client):
         "/signup",
         json={
             "email": f"remove_team_member_{suffix}@clustra.com",
-            "username": f"remove_team_member_{suffix}",
+            "full_name": f"remove_team_member_{suffix}",
             "plain_password": "richpass123",
         },
     )

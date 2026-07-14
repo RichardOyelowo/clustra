@@ -21,7 +21,7 @@ class AuthService:
 
         new_user = User(
             email= lower_email,
-            username= user.username,
+            full_name= user.full_name,
             password_hash= hash_password(user.plain_password)
         )
 

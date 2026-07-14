@@ -36,11 +36,11 @@ async def test_get_user_orgs_empty(client):
     # fresh client with no orgs
     await client.post("/signup", json={
         "email": "emptyorgs@clustra.com",
-        "username": "emptyorgs",
+        "full_name": "emptyorgs",
         "plain_password": "testpass123"
     })
     response = await client.post("/login", data={
-        "username": "emptyorgs@clustra.com",
+        "full_name": "emptyorgs@clustra.com",
         "password": "testpass123"
     })
     token = response.json()["access_token"]
@@ -129,7 +129,7 @@ async def create_user(auth_client, prefix):
     safe_prefix = prefix[:30]
     response = await auth_client.post("/signup", json={
         "email": f"{safe_prefix}_{suffix}@clustra.com",
-        "username": f"{safe_prefix}_{suffix}",
+        "full_name": f"{safe_prefix}_{suffix}",
         "plain_password": "richpass123",
     })
     assert response.status_code == 200, response.json()

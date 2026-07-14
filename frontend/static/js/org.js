@@ -122,8 +122,8 @@ async function init() {
             milestones: 0,
         },
         user: {
-            initial: user.username.charAt(0).toUpperCase(),
-            name: user.username,
+            initial: user.full_name.charAt(0).toUpperCase(),
+            name: user.full_name,
             role: "Member",
         },
     });
