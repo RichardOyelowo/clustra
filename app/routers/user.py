@@ -11,8 +11,13 @@ user_service = UserService()
 
 
 @user_router.get("/me", response_model=UserResponse)
-async def get_user(current_user = Depends(validate_user)) -> UserResponse:
+async def get_user(current_user = Depends(validate_user)):
     return current_user
+
+
+@user_router.get("/{id}", response_model=UserResponse)
+async def get_user_info(id: UUID, db: AsyncSession = Depends(db_session), current_user=Depends(validate_user)):
+    return user_service.get_user(id, db)
 
 
 @user_router.patch("/{id}", response_model=UserResponse)
