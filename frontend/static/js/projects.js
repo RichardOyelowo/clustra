@@ -16,7 +16,14 @@ let allTeams = [];
 let allProjects = [];
 
 async function init() {
-    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
+    const teamIdParam = params.get("team_id");
+    const projIdParam = params.get("proj_id");
+
+    const [org, teams, user] = await Promise.all([
+        getOrg(orgId),
+        getTeams(orgId),
+        getUser(),
+    ]);
 
     if (!org) {
         console.error("failed to load org");
@@ -26,7 +33,10 @@ async function init() {
     currentOrg = org;
     allTeams = teams;
     currentUser = user;
-    currentTeam = teams[0] ?? null;
+
+    currentTeam = teamIdParam
+        ? (teams.find((t) => t.id === teamIdParam) ?? teams[0] ?? null)
+        : (teams[0] ?? null);
 
     document.getElementById("breadcrumb_org_link").href =
         `/org.html?org_id=${orgId}`;
@@ -35,7 +45,12 @@ async function init() {
 
     if (currentTeam) {
         allProjects = await getProjects(orgId, currentTeam.id);
-        currentProject = allProjects[0] ?? null;
+
+        currentProject = projIdParam
+            ? (allProjects.find((p) => p.id === projIdParam) ??
+              allProjects[0] ??
+              null)
+            : (allProjects[0] ?? null);
 
         document.getElementById("breadcrumb_team_link").href =
             `/teams.html?org_id=${orgId}&team_id=${currentTeam.id}`;
@@ -45,7 +60,7 @@ async function init() {
         if (currentProject) {
             document.getElementById("project_switcher").href =
                 `/projects.html?org_id=${orgId}&team_id=${currentTeam.id}&proj_id=${currentProject.id}`;
-            document.getElementById("project_switcher").textContent =
+            document.getElementById("switcher_project_name").textContent =
                 currentProject.name;
         } else {
             document.getElementById("project_switcher").href =
@@ -72,15 +87,19 @@ async function init() {
         },
     });
 
-    document.getElementById("kanban_board").innerHTML =
-        `<p class="empty_state">No teams In this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
-
-    if (!currentTeam || !currentProject) {
-        document.getElementById("kanban_board").innerHTML = 
-            `<p class="empty_state">No projects yet. <a href="/org.html?org_id=${orgId}">Get started</a></p>`
+    if (!currentTeam) {
+        document.getElementById("kanban_board").innerHTML =
+            `<p class="empty_state">No teams in this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
+        return; // stop here — nothing left to load
     }
 
-    await loadProject()
+    if (!currentProject) {
+        document.getElementById("kanban_board").innerHTML =
+            `<p class="empty_state">No projects yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Get started</a></p>`;
+        return; // stop here — loadProject() needs a project
+    }
+
+    await loadProject();
 }
 
 async function loadProject() {
@@ -101,7 +120,6 @@ async function loadProject() {
 
 function renderProjectSwitcher() {
     const dropdown = document.getElementById("switcher_dropdown");
-
     dropdown.innerHTML = allProjects
         .map(
             (p) => `
