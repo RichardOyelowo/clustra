@@ -72,9 +72,9 @@ document.getElementById("create_org_form").addEventListener("submit", async func
     e.preventDefault();
 
     const body = {
-        name: form.name.value,
-        slug: form.slug.value,
-        desc: form.desc.value,
+        name: this.name.value,
+        slug: this.slug.value,
+        desc: this.desc.value,
     };
 
     const response = await API.post("/orgs", body);
@@ -85,7 +85,7 @@ document.getElementById("create_org_form").addEventListener("submit", async func
     }
 
     DOM.createOrgModal.classList.add("hidden");
-    form.reset();
+    this.reset();
 
     // update orgs after creating a new one
     await loadOrgs();
