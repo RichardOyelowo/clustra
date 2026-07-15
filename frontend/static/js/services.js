@@ -39,36 +39,65 @@ import API from "./api.js";
  */
 
 export async function getOrg(orgId) {
-    const response = await API.get(`/orgs/${orgId}`);
-    return response.ok ? await response.json() : null;
+    const res = await API.get(`/orgs/${orgId}`);
+        if (!res.ok) {
+        console.error(`getTeams failed: ${res.status} ${res.statusText}`, await res.text());
+        return [];
+    }
+    return await res.json();
 }
 
 export async function getTeams(orgId) {
     const res = await API.get(`/orgs/${orgId}/teams`);
-    return res.ok ? await res.json() : [];
+    if (!res.ok) {
+        console.error(`getTeams failed: ${res.status} ${res.statusText}`, await res.text());
+        return [];
+    }
+    return await res.json();
 }
 
 export async function getProjects(orgId, teamId) {
     const res = await API.get(`/orgs/${orgId}/teams/${teamId}/projects`);
-    return res.ok ? await res.json() : [];
+    if (!res.ok) {
+        console.error(`getTeams failed: ${res.status} ${res.statusText}`, await res.text());
+        return [];
+    }
+    return await res.json();
+
 }
 
 export async function getOrgMembers(orgId) {
     const res = await API.get(`/orgs/${orgId}/members`);
-    return res.ok ? await res.json() : [];
+    if (!res.ok) {
+        console.error(`getTeams failed: ${res.status} ${res.statusText}`, await res.text());
+        return [];
+    }
+    return await res.json();
 }
 
 export async function getTeamMembers(orgId, teamId) {
     const res = await API.get(`/orgs/${orgId}/teams/${teamId}/members`);
-    return res.ok ? await res.json() : [];
+    if (!res.ok) {
+        console.error(`getTeams failed: ${res.status} ${res.statusText}`, await res.text());
+        return [];
+    }
+    return await res.json();
 }
 
 export async function getUser() {
     const res = await API.get(`/user/me`);
-    return res.ok ? await res.json() : null;
+    if (!res.ok) {
+        console.error(`getTeams failed: ${res.status} ${res.statusText}`, await res.text());
+        return [];
+    }
+    return await res.json();
 }
 
 export async function getUserInfo(userId) {
     const res = await API.get(`user/${userId}`);
-    return res.ok ? await res.json() : null;
+    if (!res.ok) {
+        console.error(`getTeams failed: ${res.status} ${res.statusText}`, await res.text());
+        return [];
+    }
+    return await res.json();
 }
