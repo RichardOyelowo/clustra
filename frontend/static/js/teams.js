@@ -113,7 +113,7 @@ function renderProjects(projects, orgId, teamId) {
     list.innerHTML = projects
         .map(
             (p) => `
-        <a class="project_item" href="/project.html?org_id=${orgId}&team_id=${teamId}&proj_id=${p.id}">
+        <a class="project_item" href="/projects.html?org_id=${orgId}&team_id=${teamId}&proj_id=${p.id}">
             <div class="project_icon">📋</div>
             <div class="project_info">
                 <div class="project_name">${p.name}</div>
@@ -314,6 +314,7 @@ async function init() {
 
         if (res.ok) {
             editTeamModal.classList.add("hidden");
+            allTeams = await getTeams(orgId);
             await loadTeam(currentTeamId);
         }
     });
