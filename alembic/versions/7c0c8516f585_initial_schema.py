@@ -1,8 +1,8 @@
-"""initial
+"""initial schema
 
-Revision ID: e62a9e695479
+Revision ID: 7c0c8516f585
 Revises: 
-Create Date: 2026-05-28 03:54:15.223132
+Create Date: 2026-07-14 19:08:15.449882
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e62a9e695479'
+revision: str = '7c0c8516f585'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,15 +24,14 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('email', sa.String(length=300), nullable=False),
-    sa.Column('full_name', sa.String(length=60), nullable=False),
+    sa.Column('full_name', sa.String(), nullable=False),
     sa.Column('password_hash', sa.String(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('id'),
-    sa.UniqueConstraint('full_name')
+    sa.UniqueConstraint('id')
     )
     op.create_table('organizations',
     sa.Column('id', sa.UUID(), nullable=False),
@@ -57,8 +56,8 @@ def upgrade() -> None:
     sa.Column('org_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
@@ -67,9 +66,11 @@ def upgrade() -> None:
     sa.Column('org_id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('role', sa.Enum('OWNER', 'ADMIN', 'MEMBER', name='organizationmemberrole'), nullable=False),
-    sa.Column('joined_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.Column('joined_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('org_id', 'user_id', name='uq_org_member_user')
@@ -78,13 +79,13 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('slug', sa.String(), nullable=False),
-    sa.Column('org_id', sa.UUID(), nullable=False),
     sa.Column('desc', sa.String(length=500), nullable=True),
+    sa.Column('org_id', sa.UUID(), nullable=False),
     sa.Column('created_by', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('slug')
@@ -93,15 +94,15 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('desc', sa.String(length=500), nullable=True),
-    sa.Column('created_by', sa.UUID(), nullable=False),
     sa.Column('team_id', sa.UUID(), nullable=False),
+    sa.Column('created_by', sa.UUID(), nullable=False),
     sa.Column('org_id', sa.UUID(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ),
-    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
@@ -110,9 +111,11 @@ def upgrade() -> None:
     sa.Column('team_id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('role', sa.Enum('VIEWER', 'CONTRIBUTOR', 'LEAD', name='teammemberrole'), nullable=False),
-    sa.Column('joined_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.Column('joined_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
@@ -125,9 +128,9 @@ def upgrade() -> None:
     sa.Column('org_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ),
-    sa.ForeignKeyConstraint(['proj_id'], ['projects.id'], ),
-    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
+    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['proj_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('name', 'proj_id', name='uq_label_per_project')
@@ -142,9 +145,9 @@ def upgrade() -> None:
     sa.Column('due_date', sa.Date(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ),
-    sa.ForeignKeyConstraint(['proj_id'], ['projects.id'], ),
-    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
+    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['proj_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
@@ -155,29 +158,30 @@ def upgrade() -> None:
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('priority', sa.String(), nullable=False),
     sa.Column('proj_id', sa.UUID(), nullable=False),
-    sa.Column('created_by', sa.UUID(), nullable=False),
     sa.Column('team_id', sa.UUID(), nullable=False),
     sa.Column('org_id', sa.UUID(), nullable=False),
     sa.Column('assignee_id', sa.UUID(), nullable=True),
+    sa.Column('created_by', sa.UUID(), nullable=False),
     sa.Column('due_date', sa.Date(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['assignee_id'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ),
-    sa.ForeignKeyConstraint(['proj_id'], ['projects.id'], ),
-    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
+    sa.ForeignKeyConstraint(['assignee_id'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['org_id'], ['organizations.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['proj_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
     op.create_table('tasklabels',
     sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('color', sa.String(), nullable=False),
     sa.Column('label_id', sa.UUID(), nullable=False),
     sa.Column('task_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['label_id'], ['labels.id'], ),
-    sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ),
+    sa.ForeignKeyConstraint(['label_id'], ['labels.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id'),
     sa.UniqueConstraint('label_id', 'task_id', name='uq_tasklabel_per_task')
