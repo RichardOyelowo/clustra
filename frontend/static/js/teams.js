@@ -110,7 +110,8 @@ function renderProjects(projects, orgId, teamId) {
         return;
     }
 
-    list.innerHTML = projects
+    const displayItems = projects.slice(0, 5)
+    list.innerHTML = displayItems
         .map(
             (p) => `
         <a class="project_item" href="/projects.html?org_id=${orgId}&team_id=${teamId}&proj_id=${p.id}">
@@ -134,7 +135,8 @@ function renderOrgMembers(members) {
         return;
     }
 
-    list.innerHTML = members
+    const displayItems = members.slice(0, 5)
+    list.innerHTML = displayItems
         .map(
             (m) => `
         <div class="member_item">

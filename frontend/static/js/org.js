@@ -27,7 +27,8 @@ function renderTeams(teams) {
         return;
     }
 
-    tbody.innerHTML = teams
+    const displayItems = teams.slice(0, 5)
+    tbody.innerHTML = displayItems
         .map(
             (team) => `
         <tr class="clickable" onclick="window.location.href='/teams.html?org_id=${orgId}&team_id=${team.id}'">
@@ -49,7 +50,8 @@ function renderOrgMembers(orgMembers) {
         return;
     }
 
-    tbody.innerHTML = orgMembers
+    const displayItems = orgMembers.slice(0, 5)
+    tbody.innerHTML = displayItems
         .map(
             (orgMember) => `
         <tr>
@@ -77,7 +79,8 @@ function renderActivity(activities) {
         deleted: "✕",
     };
 
-    list.innerHTML = activities
+    const displayItems = activities.slice(0, 5)
+    list.innerHTML = displayItems
         .map(
             (a) => `
         <div class="activity_item">
