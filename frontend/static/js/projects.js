@@ -159,12 +159,13 @@ function renderKanban(tasks) {
             return;
         }
 
-        container.innerHTML = columnTasks
+        const displayItems = columnTasks.slice(0, 5)
+        container.innerHTML = displayItems
             .map(
                 (task) => `
             <div class="task_card" data-task-id="${task.id}">
                 <span class="task_id">CLU-${task.id.slice(0, 4)}</span>
-                <span class="task_title">${task.title}</span>
+                <span class="task_title">${task.name}</span>
                 <div class="task_meta">
                     <span class="task_due">${task.due_date ? new Date(task.due_date).toLocaleDateString() : ""}</span>
                     <span class="priority_dot priority_${task.priority}"></span>
@@ -192,7 +193,7 @@ newTaskForm.addEventListener("submit", async (e) => {
     const formData = new FormData(newTaskForm);
 
     const payload = {
-        title: formData.get("title"),
+        name: formData.get("title"),
         desc: formData.get("desc") || null,
         priority: formData.get("priority"),
         due_date: formData.get("due_date") || null,
