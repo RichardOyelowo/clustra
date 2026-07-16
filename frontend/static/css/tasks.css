@@ -49,6 +49,7 @@ body { display: flex; height: 100vh; overflow: hidden; }
     font-family: inherit;
     cursor: pointer;
     transition: all 0.15s;
+    white-space: nowrap;
 }
 .btn_primary:hover { background: #7dd3fc; transform: translateY(-1px); }
 

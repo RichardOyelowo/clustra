@@ -98,7 +98,7 @@ function renderTable(tasks) {
             (task) => `
         <tr data-task-id="${task.id}">
             <td class="task_id_cell">CLU-${task.id.slice(0, 4)}</td>
-            <td class="task_title_cell">${task.title}</td>
+            <td class="task_title_cell">${task.name}</td>
             <td><span class="status_badge status_${task.status}">${task.status}</span></td>
             <td><span class="priority_badge priority_${task.priority}"><span class="priority_dot"></span>${task.priority}</span></td>
             <td class="due_cell">${task.due_date ? new Date(task.due_date).toLocaleDateString() : "—"}</td>
@@ -161,7 +161,7 @@ newTaskForm.addEventListener("submit", async (e) => {
     const formData = new FormData(newTaskForm);
 
     const payload = {
-        title: formData.get("title"),
+        name: formData.get("title"),
         desc: formData.get("desc") || null,
         priority: formData.get("priority"),
         due_date: formData.get("due_date") || null,
