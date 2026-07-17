@@ -57,7 +57,7 @@ async def auth_client(client):
         "plain_password": "testpass123"
     })
     response = await client.post("/login", data={
-        "full_name": "testuser@clustra.com",
+        "username": "testuser@clustra.com",
         "password": "testpass123"
     })
 

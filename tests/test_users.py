@@ -3,7 +3,7 @@ import uuid
 
 async def login_user(client, email, password):
     response = await client.post("/login", data={
-        "full_name": email,
+        "username": email,
         "password": password,
     })
     assert response.status_code == 200, response.json()

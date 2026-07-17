@@ -47,7 +47,7 @@ async def test_login_sucess(client):
     user = response.json()
 
     response = await client.post(
-        "/login", data={"full_name": user["email"], "password": "richpass123"}
+        "/login", data={"username": user["email"], "password": "richpass123"}
     )
     assert response.status_code == 200, response.json()
     token = response.json()["access_token"]
@@ -67,13 +67,13 @@ async def test_login_wrong_password(client):
     user = response.json()
 
     response = await client.post(
-        "/login", data={"full_name": user["email"], "password": "richpass"}
+        "/login", data={"username": user["email"], "password": "richpass"}
     )
     assert response.status_code == 401
 
 
 async def test_login_no_account(client):
     response = await client.post(
-        "/login", data={"full_name": "testlogin2@clustra.com", "password": "richpass123"}
+        "/login", data={"username": "testlogin2@clustra.com", "password": "richpass123"}
     )
     assert response.status_code == 404

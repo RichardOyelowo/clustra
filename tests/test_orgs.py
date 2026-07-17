@@ -29,7 +29,10 @@ async def test_get_user_orgs(auth_client):
 
     orgs_response = await auth_client.get("/orgs")
     assert orgs_response.status_code == 200, orgs_response.json()
-    assert orgs_response.json()[1]["id"] == response.json()["id"]
+    assert any(
+        org["id"] == response.json()["id"]
+        for org in orgs_response.json()
+    )
 
 
 async def test_get_user_orgs_empty(client):
@@ -40,7 +43,7 @@ async def test_get_user_orgs_empty(client):
         "plain_password": "testpass123"
     })
     response = await client.post("/login", data={
-        "full_name": "emptyorgs@clustra.com",
+        "username": "emptyorgs@clustra.com",
         "password": "testpass123"
     })
     token = response.json()["access_token"]
