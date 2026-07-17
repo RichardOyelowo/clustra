@@ -28,6 +28,7 @@ class TaskLabelCreate(BaseModel):
 
 class TaskLabelResponse(BaseResponse):
     id: UUID
+    color: str
     label_id: UUID
     task_id: UUID
 
