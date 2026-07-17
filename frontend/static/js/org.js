@@ -278,6 +278,8 @@ async function init() {
         .getElementById("confirm_delete_btn")
         .addEventListener("click", async () => {
             const res = await API.delete(`/orgs/${orgId}`);
+            if (!orgDel) return;
+
             if (res.ok) {
                 window.location.href = "/orgs.html";
             }

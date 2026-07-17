@@ -134,9 +134,10 @@ async function renderTable(tasks) {
     tbody.querySelectorAll("[data-delete-id]").forEach((btn) => {
         btn.addEventListener("click", async () => {
             const taskId = btn.dataset.deleteId;
-            await API.delete(
+            res = await API.delete(
                 `/orgs/${orgId}/teams/${currentTeam.id}/projects/${currentProject.id}/tasks/${taskId}`,
             );
+            if (!orgDel) return;
             await loadTasks();
         });
     });

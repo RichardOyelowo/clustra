@@ -144,9 +144,10 @@ function renderMilestones(milestones) {
     list.querySelectorAll("[data-delete-id]").forEach((btn) => {
         btn.addEventListener("click", async () => {
             const milestoneId = btn.dataset.deleteId;
-            await API.delete(
+            res = await API.delete(
                 `/orgs/${orgId}/teams/${currentTeam.id}/projects/${currentProject.id}/milestones/${milestoneId}`,
             );
+            if (!res) return;
             await loadMilestones();
         });
     });

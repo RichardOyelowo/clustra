@@ -13,7 +13,11 @@ let currentOrg = null;
 let allTeams = [];
 
 async function init() {
-    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
+    const [org, teams, user] = await Promise.all([
+        getOrg(orgId),
+        getTeams(orgId),
+        getUser(),
+    ]);
 
     if (!org) {
         console.error("failed to load org");
@@ -39,8 +43,8 @@ async function init() {
         user: {
             initial: currentUser.full_name.charAt(0).toUpperCase(),
             name: currentUser.full_name,
-            role: 'Member'
-        }
+            role: "Member",
+        },
     });
 
     document.getElementById("breadcrumb_org_link").href =
@@ -95,6 +99,8 @@ document
     .getElementById("confirm_delete_btn")
     .addEventListener("click", async () => {
         const orgDel = await API.delete(`/orgs/${orgId}`);
+
+        if (!orgDel) return;
 
         if (orgDel.ok) {
             window.location.href = "/orgs.html";
