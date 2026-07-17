@@ -1,6 +1,6 @@
-import { requireAuth, logout } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
-import { getUser } from "./services.js";
+import { requireAuth, logout } from "./auth.js";
+import { getUser, getUserInfo } from "./services.js";
 import API from "./api.js";
 
 requireAuth();
@@ -42,30 +42,35 @@ function renderTeams(teams) {
         .join("");
 }
 
-function renderOrgMembers(orgMembers) {
+async function renderOrgMembers(orgMembers) {
     const tbody = document.getElementById("members_tbody");
 
     if (orgMembers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty_state">No members found.</td></tr>`;
+        tbody.innerHTML = `
+            <tr><td colspan="4" class="empty_state">No members found.</td></tr>
+        `;
         return;
     }
 
-    const displayItems = orgMembers.slice(0, 5)
-    tbody.innerHTML = displayItems
-        .map(
-            (orgMember) => `
-        <tr>
-            <td class="mono">${orgMember.user_id}</td>
-            <td><span class="role_badge role_${orgMember.role}">${orgMember.role}</span></td>
-            <td>${new Date(orgMember.joined_at).toLocaleDateString()}</td>
-            <td><button class="remove_btn">Remove</button></td>
-        </tr>
-    `,
-        )
-        .join("");
+    const rows = await Promise.all(
+        orgMembers.slice(0, 5).map(async (member) => {
+            const user = await getUserInfo(member.user_id);
+
+            return `
+                <tr>
+                    <td class="mono">${user.full_name}</td>
+                    <td><span class="role_badge role_${member.role}">${member.role}</span></td>
+                    <td>${new Date(member.joined_at).toLocaleDateString()}</td>
+                    <td><button class="remove_btn">Remove</button></td>
+                </tr>
+            `;
+        })
+    );
+
+    tbody.innerHTML = rows.join("");
 }
 
-function renderActivity(activities) {
+async function renderActivity(activities) {
     const list = document.getElementById("activity_list");
 
     if (activities.length === 0) {
@@ -79,24 +84,28 @@ function renderActivity(activities) {
         deleted: "✕",
     };
 
-    const displayItems = activities.slice(0, 5)
-    list.innerHTML = displayItems
-        .map(
-            (a) => `
-        <div class="activity_item">
-            <div class="activity_icon">${icons[a.action] ?? "⚡"}</div>
-            <div class="activity_body">
-                <div class="activity_text">
-                    <strong>${a.action}</strong> ${a.model_type.toLowerCase().replace("_", " ")}
+    const items = await Promise.all(
+        activities.slice(0, 5).map(async (a) => {
+            const user = await getUserInfo(a.user_id);
+
+            return `
+                <div class="activity_item">
+                    <div class="activity_icon">${icons[a.action] ?? "⚡"}</div>
+                    <div class="activity_body">
+                        <div class="activity_text">
+                            <strong>${a.action}</strong>
+                            ${a.model_type.toLowerCase().replace("_", " ")}
+                        </div>
+                        <div class="activity_meta">
+                            ${user.full_name} · ${new Date(a.created_at).toLocaleDateString()}
+                        </div>
+                    </div>
                 </div>
-                <div class="activity_meta">
-                    ${a.user_id.slice(0, 8)}... · ${new Date(a.created_at).toLocaleDateString()}
-                </div>
-            </div>
-        </div>
-    `,
-        )
-        .join("");
+            `;
+        })
+    );
+
+    list.innerHTML = items.join("");
 }
 
 async function loadTeams() {
@@ -138,17 +147,18 @@ async function init() {
 
     const orgMembers = orgMembersRes.ok ? await orgMembersRes.json() : [];
     const activities = activityRes.ok ? await activityRes.json() : [];
+    const owner = await getUserInfo(org.owner_id);
 
     document.getElementById("stat_members").textContent = orgMembers.length;
 
     document.getElementById("info_name").textContent = org.name;
     document.getElementById("info_slug").textContent = org.slug;
-    document.getElementById("info_owner").textContent = org.owner_id;
+    document.getElementById("info_owner").textContent = owner.full_name;
     document.getElementById("info_desc").textContent = org.desc ?? "—";
 
     await loadTeams();
-    renderOrgMembers(orgMembers);
-    renderActivity(activities);
+    await renderOrgMembers(orgMembers);
+    await renderActivity(activities);
 
     document.getElementById("org_name_title").textContent = org.name;
     document.getElementById("breadcrumb_org_name").textContent = org.name;

@@ -90,13 +90,13 @@ async function init() {
     if (!currentTeam) {
         document.getElementById("kanban_board").innerHTML =
             `<p class="empty_state">No teams in this organization yet. <a class="btn_outline" href="/org.html?org_id=${orgId}">Create one</a></p>`;
-        return; // stop here — nothing left to load
+        return;
     }
 
     if (!currentProject) {
         document.getElementById("kanban_board").innerHTML =
             `<p class="empty_state">No projects yet. <a href="/teams.html?org_id=${orgId}&team_id=${currentTeam.id}">Get started</a></p>`;
-        return; // stop here — loadProject() needs a project
+        return;
     }
 
     await loadProject();

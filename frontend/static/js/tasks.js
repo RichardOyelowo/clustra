@@ -1,6 +1,12 @@
 import { requireAuth } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
-import { getOrg, getTeams, getProjects, getUser } from "./services.js";
+import {
+    getOrg,
+    getTeams,
+    getProjects,
+    getUser,
+    getUserInfo,
+} from "./services.js";
 import API from "./api.js";
 
 requireAuth();
@@ -17,7 +23,11 @@ let allProjects = [];
 let allTasks = [];
 
 async function init() {
-    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
+    const [org, teams, user] = await Promise.all([
+        getOrg(orgId),
+        getTeams(orgId),
+        getUser(),
+    ]);
 
     if (!org) {
         console.error("failed to load org");
@@ -82,10 +92,10 @@ async function loadTasks() {
     );
     allTasks = tasksRes.ok ? await tasksRes.json() : [];
 
-    renderTable(allTasks);
+    await renderTable(allTasks);
 }
 
-function renderTable(tasks) {
+async function renderTable(tasks) {
     const tbody = document.getElementById("tasks_tbody");
 
     if (tasks.length === 0) {
@@ -93,23 +103,34 @@ function renderTable(tasks) {
         return;
     }
 
-    tbody.innerHTML = tasks
-        .map(
-            (task) => `
-        <tr data-task-id="${task.id}">
-            <td class="task_id_cell">CLU-${task.id.slice(0, 4)}</td>
-            <td class="task_title_cell">${task.name}</td>
-            <td><span class="status_badge status_${task.status}">${task.status}</span></td>
-            <td><span class="priority_badge priority_${task.priority}"><span class="priority_dot"></span>${task.priority}</span></td>
-            <td class="due_cell">${task.due_date ? new Date(task.due_date).toLocaleDateString() : "—"}</td>
-            <td class="assignee_cell">${task.assignee_id ? task.assignee_id.slice(0, 8) + "..." : "—"}</td>
-            <td><button class="action_btn" data-delete-id="${task.id}">Delete</button></td>
-        </tr>
-    `,
-        )
-        .join("");
+    const rows = await Promise.all(
+        tasks.map(async (task) => {
+            const assignee = task.assignee_id
+                ? await getUserInfo(task.assignee_id)
+                : null;
 
-    // wire up delete buttons
+            return `
+                <tr data-task-id="${task.id}">
+                    <td class="task_id_cell">CLU-${task.id.slice(0, 4)}</td>
+                    <td class="task_title_cell">${task.name}</td>
+                    <td><span class="status_badge status_${task.status}">${task.status}</span></td>
+                    <td><span class="priority_badge priority_${task.priority}"><span class="priority_dot"></span>${task.priority}</span></td>
+                    <td class="due_cell">${
+                        task.due_date
+                            ? new Date(task.due_date).toLocaleDateString()
+                            : "—"
+                    }</td>
+                    <td class="assignee_cell">${
+                        assignee ? assignee.full_name : "—"
+                    }</td>
+                    <td><button class="action_btn" data-delete-id="${task.id}">Delete</button></td>
+                </tr>
+            `;
+        }),
+    );
+
+    tbody.innerHTML = rows.join("");
+
     tbody.querySelectorAll("[data-delete-id]").forEach((btn) => {
         btn.addEventListener("click", async () => {
             const taskId = btn.dataset.deleteId;
@@ -129,7 +150,7 @@ document
     .getElementById("filter_priority")
     .addEventListener("change", applyFilters);
 
-function applyFilters() {
+async function applyFilters() {
     const statusFilter = document.getElementById("filter_status").value;
     const priorityFilter = document.getElementById("filter_priority").value;
 
@@ -142,7 +163,7 @@ function applyFilters() {
             filtered = filtered.filter((t) => t.priority === priorityFilter);
     }
 
-    renderTable(filtered);
+   await renderTable(filtered);
 }
 
 // ── new task modal ──
@@ -180,4 +201,3 @@ newTaskForm.addEventListener("submit", async (e) => {
 });
 
 init();
-

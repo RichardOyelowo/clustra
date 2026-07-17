@@ -5,6 +5,7 @@ import {
     getUser,
     getOrg,
     getTeams,
+    getUserInfo,
     getProjects,
     getTeamMembers,
 } from "./services.js";
@@ -67,7 +68,7 @@ async function loadTeam(teamId) {
     document.getElementById("stat_members").textContent = members.length;
 
     renderProjects(projects, orgId, teamId);
-    renderOrgMembers(members);
+    await renderOrgMembers(members);
 }
 
 function renderSwitcher(teams, activeTeamId) {
@@ -110,7 +111,7 @@ function renderProjects(projects, orgId, teamId) {
         return;
     }
 
-    const displayItems = projects.slice(0, 5)
+    const displayItems = projects.slice(0, 5);
     list.innerHTML = displayItems
         .map(
             (p) => `
@@ -127,7 +128,7 @@ function renderProjects(projects, orgId, teamId) {
         .join("");
 }
 
-function renderOrgMembers(members) {
+async function renderOrgMembers(members) {
     const list = document.getElementById("members_list");
 
     if (members.length === 0) {
@@ -135,20 +136,25 @@ function renderOrgMembers(members) {
         return;
     }
 
-    const displayItems = members.slice(0, 5)
-    list.innerHTML = displayItems
-        .map(
-            (m) => `
-        <div class="member_item">
-            <div class="member_avatar">${m.id.slice(0, 2).toUpperCase()}</div>
-            <div class="member_info">
-                <div class="member_id">${m.id.slice(0, 12)}...</div>
-            </div>
-            <span class="role_badge role_${m.role}">${m.role}</span>
-        </div>
-    `,
-        )
-        .join("");
+    const items = await Promise.all(
+        members.slice(0, 5).map(async (m) => {
+            const user = await getUserInfo(m.user_id);
+
+            return `
+                <div class="member_item">
+                    <div class="member_avatar">
+                        ${user.full_name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div class="member_info">
+                        <div class="member_name">${user.full_name}</div>
+                    </div>
+                    <span class="role_badge role_${m.role}">${m.role}</span>
+                </div>
+            `;
+        }),
+    );
+
+    list.innerHTML = items.join("");
 }
 
 // switcher open/close
@@ -268,7 +274,7 @@ async function init() {
             `/orgs/${orgId}/teams/${currentTeamId}/members`,
             payload,
         );
-        
+
         if (!res.ok) {
             console.log("Status:", res.status);
             console.log(await res.json());
@@ -308,7 +314,6 @@ async function init() {
             payload,
         );
 
-        
         if (!res.ok) {
             console.log("Status:", res.status);
             console.log(await res.json());
@@ -339,7 +344,7 @@ async function init() {
             const res = await API.delete(
                 `/orgs/${orgId}/teams/${currentTeamId}`,
             );
-            
+
             if (!res.ok) {
                 console.log("Status:", res.status);
                 console.log(await res.json());

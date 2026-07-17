@@ -1,6 +1,6 @@
 import { requireAuth } from "./auth.js";
 import { renderSidebar } from "./sidebar.js";
-import { getOrg, getTeams, getUser } from "./services.js";
+import { getOrg, getTeams, getUser, getUserInfo } from "./services.js";
 import API from "./api.js";
 
 requireAuth();
@@ -14,7 +14,11 @@ let allTeams = [];
 let allActivities = [];
 
 async function init() {
-    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()]);
+    const [org, teams, user] = await Promise.all([
+        getOrg(orgId),
+        getTeams(orgId),
+        getUser(),
+    ]);
 
     if (!org) {
         console.error("failed to load org");
@@ -47,8 +51,8 @@ async function loadActivity() {
         user: {
             initial: currentUser.full_name.charAt(0).toUpperCase(),
             name: currentUser.full_name,
-            role: 'Member'
-        }
+            role: "Member",
+        },
     });
 
     document.getElementById("breadcrumb_org_link").href =
@@ -56,10 +60,10 @@ async function loadActivity() {
     document.getElementById("breadcrumb_org_link").textContent =
         currentOrg.name;
 
-    renderFeed(allActivities);
+    await renderFeed(allActivities);
 }
 
-function renderFeed(activities) {
+async function renderFeed(activities) {
     const feed = document.getElementById("activity_feed");
 
     if (activities.length === 0) {
@@ -67,29 +71,33 @@ function renderFeed(activities) {
         return;
     }
 
-    feed.innerHTML = activities
-        .map(
-            (a) => `
-        <div class="activity_item">
-            <div class="activity_icon_wrap">
-                <div class="activity_icon ${a.action}">
-                    ${a.action === "created" ? "✦" : a.action === "updated" ? "✎" : "✕"}
+    const items = await Promise.all(
+        activities.map(async (a) => {
+            const user = await getUserInfo(a.user_id);
+
+            return `
+                <div class="activity_item">
+                    <div class="activity_icon_wrap">
+                        <div class="activity_icon ${a.action}">
+                            ${a.action === "created" ? "✦" : a.action === "updated" ? "✎" : "✕"}
+                        </div>
+                    </div>
+                    <div class="activity_body">
+                        <div class="activity_text">
+                            <strong>${a.action}</strong> :
+                            <span class="activity_model">${a.model_type.toLowerCase().replace("_", " ")}</span>
+                        </div>
+                        <div class="activity_meta">
+                            <span class="activity_user">${user.full_name}</span>
+                            <span class="activity_time">${new Date(a.created_at).toLocaleString()}</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="activity_body">
-                <div class="activity_text">
-                    <strong>${a.action}</strong> :
-                    <span class="activity_model"> ${a.model_type.toLowerCase().replace("_", " ")}</span>
-                </div>
-                <div class="activity_meta">
-                    <span class="activity_user">${a.user_id.slice(0, 8)}...</span>
-                    <span class="activity_time">${new Date(a.created_at).toLocaleString()}</span>
-                </div>
-            </div>
-        </div>
-    `,
-        )
-        .join("");
+            `;
+        }),
+    );
+
+    feed.innerHTML = items.join("");
 }
 
 // ── filters ──
