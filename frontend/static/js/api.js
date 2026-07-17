@@ -36,6 +36,13 @@ const API = {
     },
 
     async delete(url) {
+        if (!confirm("Are you sure? This action cannot be undone.")) {
+            return new Response(null, {
+                status: 499,
+                statusText: "User Cancelled",
+            });
+        }
+
         const response = await fetch(url, {
             method: "DELETE",
             headers: this.authHeaders(),
