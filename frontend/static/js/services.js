@@ -38,11 +38,13 @@ import API from "./api.js";
 
  */
 
+const userCache = {}
+
 export async function getOrg(orgId) {
     const res = await API.get(`/orgs/${orgId}`);
         if (!res.ok) {
         console.error(`getOrg failed: ${res.status} ${res.statusText}`, await res.text());
-        return [];
+        return null;
     }
     return await res.json();
 }
@@ -94,10 +96,14 @@ export async function getUser() {
 }
 
 export async function getUserInfo(userId) {
-    const res = await API.get(`/user/${userId}`);
+    if (userCache[userId]) return userCache[userId]
+    
+    const res = await API.get(`/user/${userId}`)
     if (!res.ok) {
-        console.error(`getUserInfo failed: ${res.status} ${res.statusText}`, await res.text());
-        return [];
+        console.error(`getUserInfo failed: ${res.status}`)
+        return null
     }
-    return await res.json();
+    const user = await res.json()
+    userCache[userId] = user
+    return user
 }
