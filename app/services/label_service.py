@@ -272,6 +272,7 @@ class LabelService:
 
         data_dict = data.model_dump(exclude_unset=True)
         data_dict["label_id"] = label_id
+        data_dict["color"] = label.color
         task_label = TaskLabel(**normalize_payloads(data_dict))
 
         db.add(task_label)
