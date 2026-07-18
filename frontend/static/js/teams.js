@@ -347,7 +347,6 @@ async function init() {
 
             if (!res.ok) {
                 console.log("Status:", res.status);
-                console.log(await res.json());
             }
 
             if (res.ok) {

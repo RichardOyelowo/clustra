@@ -116,9 +116,10 @@ function renderLabels(labels) {
     tbody.querySelectorAll("[data-delete-id]").forEach((btn) => {
         btn.addEventListener("click", async () => {
             const labelId = btn.dataset.deleteId;
-            await API.delete(
+            const res = await API.delete(
                 `/orgs/${orgId}/teams/${currentTeam.id}/projects/${currentProject.id}/labels/${labelId}`,
             );
+            if (!res?.ok) return;
         });
     });
 }

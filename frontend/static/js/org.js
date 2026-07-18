@@ -205,22 +205,28 @@ async function init() {
 
     addMemberForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+
         const formData = new FormData(addMemberForm);
         const payload = {
             user_id: formData.get("user_id"),
             role: formData.get("role"),
         };
+
         const res = await API.post(`/orgs/${orgId}/members`, payload);
-        if (res.ok) {
-            addMemberModal.classList.add("hidden");
-            addMemberForm.reset();
-            // re-fetch and re-render members inline since no loadMembers()
-            const membersRes = await API.get(`/orgs/${orgId}/members`);
-            const members = membersRes.ok ? await membersRes.json() : [];
-            document.getElementById("stat_members").textContent =
-                members.length;
-            renderOrgMembers(members);
+
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.detail?.[0]?.msg ?? "Failed to add member.");
+            return;
         }
+
+        addMemberModal.classList.add("hidden");
+        addMemberForm.reset();
+
+        const membersRes = await API.get(`/orgs/${orgId}/members`);
+        const members = membersRes.ok ? await membersRes.json() : [];
+        document.getElementById("stat_members").textContent = members.length;
+        renderOrgMembers(members);
     });
 
     // edit org modal
@@ -278,11 +284,9 @@ async function init() {
         .getElementById("confirm_delete_btn")
         .addEventListener("click", async () => {
             const res = await API.delete(`/orgs/${orgId}`);
-            if (!orgDel) return;
+            if (!res?.ok) return;
 
-            if (res.ok) {
-                window.location.href = "/orgs.html";
-            }
+            window.location.href = "/orgs.html";
         });
 }
 

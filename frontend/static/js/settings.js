@@ -100,7 +100,7 @@ document
     .addEventListener("click", async () => {
         const orgDel = await API.delete(`/orgs/${orgId}`);
 
-        if (!orgDel) return;
+        if (!orgDel.ok) return;
 
         if (orgDel.ok) {
             window.location.href = "/orgs.html";
