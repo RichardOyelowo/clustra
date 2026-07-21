@@ -1,6 +1,6 @@
+from ..schemas import UserPublicResponse, UserResponse, UserUpdate
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..schemas import UserResponse, UserUpdate
 from ..dependencies import validate_user
 from ..services import UserService
 from ..database import db_session
@@ -15,7 +15,7 @@ async def get_user(current_user = Depends(validate_user)):
     return current_user
 
 
-@user_router.get("/{id}", response_model=UserResponse)
+@user_router.get("/{id}", response_model=UserPublicResponse)
 async def get_user_info(id: UUID, db: AsyncSession = Depends(db_session), current_user=Depends(validate_user)):
     return await user_service.get_user(id, db)
 

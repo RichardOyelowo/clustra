@@ -11,6 +11,7 @@ from ..schemas import (
     OrganizationResponse,
     OrganizationMemberCreate,
     OrganizationMemberResponse,
+    UserPublicResponse
 ) 
 
 org_router = APIRouter(prefix="/orgs")
@@ -98,3 +99,12 @@ async def remove_member(
     db: AsyncSession = Depends(db_session)
 ):
     return await org_service.remove_member(org_id, member_id, current_user.id, db)
+
+
+@org_router.get("/{org_id}/members/candidates", response_model=List[UserPublicResponse])
+async def get_member_candidates(
+    org_id: UUID,
+    current_user=Depends(validate_user),
+    db: AsyncSession = Depends(db_session),
+):
+    return await org_service.get_member_candidates(org_id, current_user, db)
