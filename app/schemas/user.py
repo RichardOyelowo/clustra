@@ -1,6 +1,6 @@
 from .base import BaseResponse 
 from pydantic import BaseModel 
-import uuid
+from uuid import UUID
 
 
 class UserCreate(BaseModel):
@@ -10,7 +10,7 @@ class UserCreate(BaseModel):
     
 
 class UserResponse(BaseResponse):
-    id: uuid.UUID
+    id: UUID
     email: str
     full_name: str
     is_active: bool
@@ -21,3 +21,8 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     password: str | None = None
     is_active: bool | None = None
+
+
+class UserPublicResponse(BaseModel):
+    id: UUID
+    full_name: str
