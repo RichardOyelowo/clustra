@@ -197,6 +197,7 @@ async function init() {
     document.getElementById("add_member_btn").addEventListener("click", () => {
         addMemberModal.classList.remove("hidden");
     });
+
     document
         .getElementById("cancel_member_btn")
         .addEventListener("click", () => {
@@ -240,6 +241,7 @@ async function init() {
         document.getElementById("edit_org_desc").value = org.desc ?? "";
         editOrgModal.classList.remove("hidden");
     });
+
     document.getElementById("cancel_edit_btn").addEventListener("click", () => {
         editOrgModal.classList.add("hidden");
     });
@@ -274,11 +276,12 @@ async function init() {
     document.getElementById("delete_org_btn").addEventListener("click", () => {
         deleteOrgModal.classList.remove("hidden");
     });
+    
     document
         .getElementById("cancel_delete_btn")
         .addEventListener("click", () => {
             deleteOrgModal.classList.add("hidden");
-        });
+});
 
     document
         .getElementById("confirm_delete_btn")
