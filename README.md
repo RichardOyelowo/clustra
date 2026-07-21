@@ -143,31 +143,3 @@ These exist intentionally and are documented for v2:
 
 **Activity descriptions.** The activity feed shows action type and model type but not a human-readable description of what changed. This is a backend schema limitation — the current ActivityResponse does not store a description field.
 
----
-
-## Financial and Learning Context
-
-This section covers decisions made about learning path and career direction during the Clustra build period.
-
-### Why Vanilla JS Before TypeScript
-
-TypeScript was deliberately deferred until after Clustra frontend was complete. The reasoning: TypeScript is JavaScript with a type system. Learning JS properly first through real DOM work, async patterns, and ES modules means TS concepts click faster and the type system feels like a tool rather than an obstacle. Clustra is the JS learning vehicle. The TypeScript GateProxy SDK is the TS learning vehicle.
-
-### Why Go Next
-
-After Clustra, the next project is GateProxy — a reverse proxy and API gateway in Go. The reason Go is next rather than TypeScript or C++ is positioning. FastAPI CRUD developer is a flooded job market. Backend infrastructure engineer with a working Go reverse proxy and real benchmarks is a much smaller candidate pool. Go was chosen over alternatives because it is the dominant language for infrastructure services, has excellent concurrency primitives, and the official tour is genuinely good for self-teaching.
-
-### Learning Roadmap Order
-
-Phase 0: Finish Clustra (done)
-Phase 1: Go fundamentals + GateProxy (core features, tests, benchmarks, architecture docs)
-Phase 2: DSA in C using Abdul Bari's course (overlaps with Phase 1)
-Phase 3: TypeScript SDK for GateProxy
-Phase 4: C++ Deep Dive + TinyStore or StoneKV
-Background: Khan Academy math (Algebra through Linear Algebra and Calculus basics)
-
-The math track runs quietly alongside everything else with no deadline. It feeds into an eventual AI/ML phase that sits beyond this roadmap.
-
-### Product Idea: API Monitoring Tool
-
-A lightweight API monitoring and uptime tool was identified as the most viable fast-revenue product given the current financial situation. The reasoning: largest proven audience among developer tools, proven willingness to pay ($9-19/month is an easy yes for a developer at a company), lowest trust barrier (monitoring does not touch user data), and buildable in 4 weeks with the existing stack (FastAPI, PostgreSQL, Railway). Core features: endpoint checks, latency tracking, incident logging, email alerts, Stripe billing with free and paid tiers. This was identified as having better revenue and traffic prospects than a webhook dashboard or API rate-limiting proxy, which were the other candidates considered.
