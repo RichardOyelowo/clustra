@@ -31,5 +31,6 @@ class TeamMemberCreate(BaseModel):
 
 class TeamMemberResponse(BaseResponse):
     id: uuid.UUID
+    user_id: uuid.UUID
     role: TeamMemberRole
     joined_at: datetime
