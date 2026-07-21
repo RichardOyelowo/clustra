@@ -107,3 +107,18 @@ export async function getUserInfo(userId) {
     userCache[userId] = user
     return user
 }
+
+export async function getTeamMemberCandidates(orgId, teamId) {
+    const res = await API.get(
+        `/orgs/${orgId}/teams/${teamId}/members/candidates`
+    );
+
+    if (!res.ok) {
+        console.error("Failed to load team member candidates");
+        return [];
+    }
+
+    return await res.json();
+}
+
+
