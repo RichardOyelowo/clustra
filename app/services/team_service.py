@@ -1,5 +1,5 @@
 from ..utils import check_org_membership, check_team_membership, normalize_payloads
-from ..models import Team, TeamMember, ActivityType, ModelType
+from ..models import Team, TeamMember, ActivityType, ModelType, TeamMemberRole
 from ..schemas import TeamCreate, TeamUpdate, TeamMemberCreate
 from ..utils import TEAM_LEAD_ROLES, TEAM_VIEW_ROLES
 from ..utils import ORG_ADMIN_ROLES, ORG_ANY_ROLES
@@ -34,6 +34,14 @@ class TeamService:
         db.add(team)
         await db.flush()
 
+        member = TeamMember(
+            team_id=team.id,
+            user_id=current_user,
+            role=TeamMemberRole.LEAD,
+        )
+
+        db.add(member)
+
         # creates activity
         await log_activity(
             current_user,
@@ -45,6 +53,10 @@ class TeamService:
         )
 
         await db.commit()
+        result = await db.execute(
+             select(TeamMember).where(TeamMember.team_id == team.id)
+        )
+        print(result.scalars().all())
         await db.refresh(team)
 
         return team

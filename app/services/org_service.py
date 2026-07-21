@@ -1,11 +1,11 @@
-from ..models import Organization, OrganizationMember, OrganizationMemberRole
+from ..models import Organization, OrganizationMember, OrganizationMemberRole, User
 from ..utils import ORG_ANY_ROLES, ORG_ADMIN_ROLES, ORG_OWNER_ROLES
 from ..utils import normalize_payloads, check_org_membership
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import ActivityType, ModelType
+from sqlalchemy import select, not_
 from fastapi import HTTPException
 from ..utils import log_activity
-from sqlalchemy import select
 from uuid import UUID
 from ..schemas import (
     OrganizationCreate,
@@ -189,9 +189,23 @@ class OrgService:
             )
 
         # Create new member
-        member_data = normalize_payloads(data.model_dump())
-        member = OrganizationMember(**member_data, org_id=org_id)
+        user_result = await db.execute(
+            select(User).where(User.id == data.user_id)
+        )
 
+        user = user_result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+
+        member = OrganizationMember(
+            **normalize_payloads(data.model_dump()),
+            org_id=org_id
+        )
+       
         db.add(member)
         await db.flush()
         await log_activity(
@@ -278,3 +292,21 @@ class OrgService:
         await db.delete(member)
         await db.commit()
         return {"message": "Member removed successfully"}
+
+    async def get_member_candidates(self, org_id: UUID, current_user, db: AsyncSession):
+        """
+            Get users that are not already members of this organization.
+        """
+        await check_org_membership(org_id, current_user, ORG_ADMIN_ROLES, db)
+        existing_members = select(
+            OrganizationMember.user_id
+        ).where(
+            OrganizationMember.org_id == org_id
+        )
+
+        result = await db.execute(
+            select(User.id, User.full_name)
+            .where(User.id.not_in(existing_members))
+        )
+
+        return result.all()

@@ -13,15 +13,23 @@ class UserService:
     """
 
     async def get_user(self, user_id: UUID, db: AsyncSession):
-        """ retrieve a user by their id """
+        result = await db.execute(
+            select(User.id, User.full_name)
+            .where(User.id == user_id)
+        )
 
-        result = await db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
+        user = result.one_or_none()
 
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
 
-        return user
+        return {
+            "id": user.id,
+            "full_name": user.full_name,
+        }
 
 
     async def edit_user(self, user_id: UUID, update_data: UserUpdate, db: AsyncSession):
