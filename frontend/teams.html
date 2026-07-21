@@ -13,11 +13,12 @@
     <div id="sidebar_mount"></div>
 
     <div class="main">
-
       <!-- HEADER -->
       <header class="page_header">
         <nav class="breadcrumb">
-          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link">Orgs</a>
+          <a href="/orgs.html" id="breadcrumb_org_link" class="breadcrumb_link"
+            >Orgs</a
+          >
           <span class="breadcrumb_sep">/</span>
           <!-- team switcher dropdown -->
           <div class="team_switcher" id="team_switcher">
@@ -34,22 +35,27 @@
           <span class="member_count" id="member_count">— members</span>
         </div>
         <div class="header_actions">
-          <button type="button" class="btn_primary" id="new_project_btn">+ New Project</button>
-          <button type="button" class="btn_outline" id="add_member_btn">+ Add Member</button>
+          <button type="button" class="btn_primary" id="new_project_btn">
+            + New Project
+          </button>
+          <button type="button" class="btn_outline" id="add_member_btn">
+            + Add Member
+          </button>
         </div>
       </header>
 
       <!-- CONTENT -->
       <div class="content">
         <div class="bento_grid">
-
           <!-- PROJECTS (span 8) -->
           <div class="bento_card span_8">
             <div class="card_header">
               <h3 class="card_title">Active Projects</h3>
             </div>
             <div class="projects_list" id="projects_list">
-              <p class="empty_state">No projects yet. Create one to get started.</p>
+              <p class="empty_state">
+                No projects yet. Create one to get started.
+              </p>
             </div>
           </div>
 
@@ -67,7 +73,9 @@
           <div class="bento_card span_6">
             <div class="card_header">
               <h3 class="card_title">Team Info</h3>
-              <button type="button" class="btn_outline_sm" id="edit_team_btn">Edit</button>
+              <button type="button" class="btn_outline_sm" id="edit_team_btn">
+                Edit
+              </button>
             </div>
             <div class="info_list">
               <div class="info_row">
@@ -89,7 +97,13 @@
             </div>
             <div class="danger_zone">
               <span class="danger_label">Danger Zone</span>
-              <button type="button" class="btn_danger_solid" id="delete_team_btn">Delete Team</button>
+              <button
+                type="button"
+                class="btn_danger_solid"
+                id="delete_team_btn"
+              >
+                Delete Team
+              </button>
             </div>
           </div>
 
@@ -109,19 +123,32 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
 
     <!-- MODAL: New Project -->
-    <div id="new_project_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="new_project_title">
+    <div
+      id="new_project_modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="new_project_title"
+    >
       <div class="modal_content">
         <h2 id="new_project_title">New Project</h2>
         <form id="new_project_form">
           <div class="form_fields">
-            <input type="text" name="name" placeholder="Project name" required />
-            <textarea name="desc" placeholder="Description (optional)"></textarea>
+            <input
+              type="text"
+              name="name"
+              placeholder="Project name"
+              required
+            />
+            <textarea
+              name="desc"
+              placeholder="Description (optional)"
+            ></textarea>
           </div>
           <div class="modal_actions">
             <button type="button" id="cancel_project_btn">Cancel</button>
@@ -132,12 +159,21 @@
     </div>
 
     <!-- MODAL: Add Member -->
-    <div id="add_member_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="add_member_title">
+    <div
+      id="add_member_modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add_member_title"
+    >
       <div class="modal_content">
         <h2 id="add_member_title">Add Team Member</h2>
+
         <form id="add_member_form">
           <div class="form_fields">
-            <input type="text" name="user_id" placeholder="User UUID" required />
+            <select name="user_id" id="team_user_select" required>
+              <option value="">Select a user...</option>
+            </select>
             <select name="role">
               <option value="contributor">Contributor</option>
               <option value="lead">Lead</option>
@@ -153,14 +189,36 @@
     </div>
 
     <!-- MODAL: Edit Team -->
-    <div id="edit_team_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="edit_team_title">
+    <div
+      id="edit_team_modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit_team_title"
+    >
       <div class="modal_content">
         <h2 id="edit_team_title">Edit Team</h2>
         <form id="edit_team_form">
           <div class="form_fields">
-            <input type="text" name="name" id="edit_name" placeholder="Team name" required />
-            <input type="text" name="slug" id="edit_slug" placeholder="Slug" required />
-            <textarea name="desc" id="edit_desc" placeholder="Description (optional)"></textarea>
+            <input
+              type="text"
+              name="name"
+              id="edit_name"
+              placeholder="Team name"
+              required
+            />
+            <input
+              type="text"
+              name="slug"
+              id="edit_slug"
+              placeholder="Slug"
+              required
+            />
+            <textarea
+              name="desc"
+              id="edit_desc"
+              placeholder="Description (optional)"
+            ></textarea>
           </div>
           <div class="modal_actions">
             <button type="button" id="cancel_edit_btn">Cancel</button>
@@ -171,17 +229,30 @@
     </div>
 
     <!-- MODAL: Confirm Delete Team -->
-    <div id="delete_team_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="delete_team_title">
+    <div
+      id="delete_team_modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete_team_title"
+    >
       <div class="modal_content">
         <h2 id="delete_team_title">Delete Team</h2>
-        <p class="modal_warning">This will permanently delete the team and all its projects, tasks, and data. This cannot be undone.</p>
+        <p class="modal_warning">
+          This will permanently delete the team and all its projects, tasks, and
+          data. This cannot be undone.
+        </p>
         <div class="modal_actions">
           <button type="button" id="cancel_delete_btn">Cancel</button>
-          <button type="button" class="btn_danger_solid" id="confirm_delete_btn">Yes, Delete</button>
+          <button
+            type="button"
+            class="btn_danger_solid"
+            id="confirm_delete_btn"
+          >
+            Yes, Delete
+          </button>
         </div>
       </div>
     </div>
-
   </body>
 </html>
-

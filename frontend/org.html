@@ -13,7 +13,6 @@
     <div id="sidebar_mount"></div>
 
     <div class="main">
-
       <!-- HEADER -->
       <header class="org_header">
         <nav class="breadcrumb">
@@ -22,14 +21,21 @@
           <span class="breadcrumb_current" id="breadcrumb_org_name">—</span>
         </nav>
         <div class="header_actions">
-          <button type="button" class="btn_outline" id="edit_org_btn">Edit Org</button>
-          <button type="button" class="btn_outline btn_danger" id="delete_org_btn">Delete</button>
+          <button type="button" class="btn_outline" id="edit_org_btn">
+            Edit Org
+          </button>
+          <button
+            type="button"
+            class="btn_outline btn_danger"
+            id="delete_org_btn"
+          >
+            Delete
+          </button>
         </div>
       </header>
 
       <!-- CONTENT -->
       <div class="content" id="content">
-
         <!-- DASHBOARD TITLE ROW -->
         <div class="dash_title_row">
           <div>
@@ -50,12 +56,13 @@
 
         <!-- BENTO GRID -->
         <div class="bento_grid">
-
           <!-- TEAMS TABLE (left, large) -->
           <div class="bento_card span_8">
             <div class="card_header">
               <h3 class="card_title">Teams</h3>
-              <button type="button" class="btn_primary" id="create_team_btn">+ New Team</button>
+              <button type="button" class="btn_primary" id="create_team_btn">
+                + New Team
+              </button>
             </div>
             <div class="table_wrap">
               <table class="data_table" id="teams_table">
@@ -68,7 +75,9 @@
                   </tr>
                 </thead>
                 <tbody id="teams_tbody">
-                  <tr><td colspan="4" class="empty_state">No teams yet.</td></tr>
+                  <tr>
+                    <td colspan="4" class="empty_state">No teams yet.</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -88,20 +97,24 @@
           <div class="bento_card span_6">
             <div class="card_header">
               <h3 class="card_title">Members</h3>
-              <button type="button" class="btn_primary" id="add_member_btn">+ Add Member</button>
+              <button type="button" class="btn_primary" id="add_member_btn">
+                + Add Member
+              </button>
             </div>
             <div class="table_wrap">
               <table class="data_table">
                 <thead>
                   <tr>
-                    <th>User ID</th>
+                    <th>User</th>
                     <th>Role</th>
                     <th>Joined</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody id="members_tbody">
-                  <tr><td colspan="4" class="empty_state">No members found.</td></tr>
+                  <tr>
+                    <td colspan="4" class="empty_state">No members found.</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -131,7 +144,6 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -142,7 +154,12 @@
         <h2>New Team</h2>
         <form id="create_team_form">
           <input type="text" name="name" placeholder="Team name" required />
-          <input type="text" name="slug" placeholder="Slug (e.g. backend)" required />
+          <input
+            type="text"
+            name="slug"
+            placeholder="Slug (e.g. backend)"
+            required
+          />
           <textarea name="desc" placeholder="Description (optional)"></textarea>
           <div class="modal_actions">
             <button type="button" id="cancel_team_btn">Cancel</button>
@@ -154,20 +171,23 @@
 
     <!-- MODAL: Add Member -->
     <div id="add_member_modal" class="modal hidden">
-      <div class="modal_content">
+    <div class="modal_content">
         <h2>Add Member</h2>
+
         <form id="add_member_form">
-          <input type="text" name="user_id" placeholder="User UUID" required />
-          <select name="role">
-            <option value="member">Member</option>
-            <option value="admin">Admin</option>
-          </select>
-          <div class="modal_actions">
-            <button type="button" id="cancel_member_btn">Cancel</button>
-            <button type="submit">Add</button>
-          </div>
+            <select name="user_id" id="user_select" required>
+                <option value="">Select a user...</option>
+            </select>
+            <select name="role">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+            </select>
+            <div class="modal_actions">
+                <button type="button" id="cancel_member_btn">Cancel</button>
+                <button type="submit">Add</button>
+            </div>
         </form>
-      </div>
+    </div>
     </div>
 
     <!-- MODAL: Edit Org -->
@@ -175,9 +195,25 @@
       <div class="modal_content">
         <h2>Edit Organization</h2>
         <form id="edit_org_form">
-          <input type="text" name="name" id="edit_org_name" placeholder="Organization name" required />
-          <input type="text" name="slug" id="edit_org_slug" placeholder="Slug" required />
-          <textarea name="desc" id="edit_org_desc" placeholder="Description (optional)"></textarea>
+          <input
+            type="text"
+            name="name"
+            id="edit_org_name"
+            placeholder="Organization name"
+            required
+          />
+          <input
+            type="text"
+            name="slug"
+            id="edit_org_slug"
+            placeholder="Slug"
+            required
+          />
+          <textarea
+            name="desc"
+            id="edit_org_desc"
+            placeholder="Description (optional)"
+          ></textarea>
           <div class="modal_actions">
             <button type="button" id="cancel_edit_btn">Cancel</button>
             <button type="submit">Save</button>
@@ -190,14 +226,21 @@
     <div id="delete_org_modal" class="modal hidden">
       <div class="modal_content">
         <h2>Delete Organization</h2>
-        <p class="modal_warning">This will permanently delete the organization and all its data. This cannot be undone.</p>
+        <p class="modal_warning">
+          This will permanently delete the organization and all its data. This
+          cannot be undone.
+        </p>
         <div class="modal_actions">
           <button type="button" id="cancel_delete_btn">Cancel</button>
-          <button type="button" class="btn_danger_solid" id="confirm_delete_btn">Yes, Delete</button>
+          <button
+            type="button"
+            class="btn_danger_solid"
+            id="confirm_delete_btn"
+          >
+            Yes, Delete
+          </button>
         </div>
       </div>
     </div>
-
   </body>
 </html>
-
