@@ -35,11 +35,9 @@ class AuthService:
     async def login(self, email: str, password: str, oauth: OAuthHandler):
         try:
             tokens = await oauth.async_login(email, password)
-        except InvalidCredentialsError:
-            raise HTTPException(status_code=404, detail="No account connected with email")
-        except UnauthorizedError:
-            raise HTTPException(status_code=401, detail="Login info doesn't match")
+        except (InvalidCredentialsError, UnauthorizedError):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
         except GuardError as e:
-            raise HTTPException(status_code=400, detail=f"{e}")
-
+            raise HTTPException(status_code=400, detail="Login failed")
         return tokens
+
