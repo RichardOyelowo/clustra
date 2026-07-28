@@ -76,4 +76,5 @@ async def test_login_no_account(client):
     response = await client.post(
         "/login", data={"username": "testlogin2@clustra.com", "password": "richpass123"}
     )
-    assert response.status_code == 404
+    assert response.status_code == 401 # changed on frontend: prevent XSS attackers
+
