@@ -3,7 +3,7 @@ import { renderSidebar } from "./sidebar.js";
 import { getOrg, getTeams, getUser, getUserInfo } from "./services.js";
 import API from "./api.js";
 
-requireAuth();
+await requireAuth();
 
 const params = new URLSearchParams(window.location.search);
 const orgId = params.get("org_id");

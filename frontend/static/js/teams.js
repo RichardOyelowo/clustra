@@ -11,7 +11,7 @@ import {
     getTeamMemberCandidates
 } from "./services.js";
 
-requireAuth();
+await requireAuth();
 
 const params = new URLSearchParams(window.location.search);
 const orgId = params.get("org_id");

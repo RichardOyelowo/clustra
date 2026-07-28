@@ -1,7 +1,7 @@
 import API from "./api.js";
 import { requireAuth, logout } from "./auth.js";
 
-requireAuth();
+await requireAuth();
 
 const DOM = {
     orgsContainer: document.getElementById("orgs_card"),
