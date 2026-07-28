@@ -1,145 +1,425 @@
-# Clustra — Decisions, Edge Cases, and Build Context
+# Clustra
 
-This document covers every meaningful decision made during the Clustra build, why it was made, edge cases encountered, and how they were resolved. Written as reference for the README, portfolio context, and future development.
+> Multi-tenant project management API and frontend built with FastAPI, PostgreSQL, async SQLAlchemy, and role-based access control. The frontend is vanilla JavaScript with ES Modules — no framework, no component library, no build step.
+
+## Table of Contents
+
+- [What It Is](#what-it-is)
+- [Hierarchy](#hierarchy)
+- [Stack](#stack)
+- [Backend Architecture](#backend-architecture)
+- [Auth](#auth)
+- [Roles and Permissions](#roles-and-permissions)
+- [Membership](#membership)
+- [Tenant Isolation](#tenant-isolation)
+- [Activity Logging](#activity-logging)
+- [Cascade Deletes](#cascade-deletes)
+- [Frontend Architecture](#frontend-architecture)
+- [Sidebar](#sidebar)
+- [Page Init Pattern](#page-init-pattern)
+- [services.js](#servicesjs)
+- [Delete Confirmation](#delete-confirmation)
+- [Member Candidates](#member-candidates)
+- [Project and Team Switcher](#project-and-team-switcher)
+- [Row Limits](#row-limits)
+- [Local Development](#local-development)
+- [Docker](#docker)
+- [Running Tests](#running-tests)
+- [Current Status](#current-status)
+- [Known Gaps](#known-gaps)
 
 ---
 
-## Architecture Decisions
+## What It Is
 
-### Hierarchy: Org -> Team -> Project -> Task
+Clustra is a project management platform built around strict tenant isolation and clear service boundaries. Every resource belongs to an organization. Every permission check happens before data is read or written. The backend was built to be correct under real use, not just functional in a demo.
 
-The hierarchy was locked early. Labels and milestones belong to projects, not teams or orgs. Activity is logged at the org level and covers every model type. This mirrors how Linear and Jira actually structure data — ownership is clear at every level and there is no ambiguity about where something belongs.
+The frontend is vanilla JavaScript — no React, no Vue, no Tailwind. This was a deliberate choice to understand what the browser actually gives you before reaching for abstractions. It connects directly to the FastAPI backend with no intermediary.
 
-### Membership Layering
+---
 
-Original approach: users could be added directly to teams without being org members first. This was wrong architecturally and was fixed mid-build.
+## Hierarchy
 
-Correct approach: org membership is a prerequisite for team membership. The candidate endpoint for adding team members returns org members minus existing team members, not all system users. This means removing someone from an org correctly invalidates their team membership at the database level through cascade deletes.
-
-The architecture in plain terms:
 ```
-System Users
-    |
-    v
-Organization Members
-    |
-    v
-Team Members (subset of org members)
+Organization
+    └── Team
+            └── Project
+                    ├── Task
+                    ├── Label
+                    └── Milestone
 ```
 
-### Role Separation
-
-Org roles (Owner, Admin, Member) and team roles (Lead, Contributor, Viewer) are independent. Someone can be an Org Admin but a Viewer on a specific team. Role checks run at the service layer using centralized permission utilities, not scattered across routes. This was a deliberate decision to make permission logic auditable in one place.
-
-Org admins bypass team membership checks on read-only routes. All other operations check both org and team membership independently.
-
-### Automatic Team Lead on Creation
-
-When a user creates a team they are automatically added as a TeamMember with the Lead role. This prevents the edge case of a team existing with no lead and no one able to manage it.
-
-### Activity Logging
-
-Every create, update, and delete logs an activity entry. The log uses `db.flush()` not `db.commit()` at the point of logging, so if the main operation fails the activity entry does not persist independently. The commit happens once at the end of the service method. This was a deliberate decision to keep activity logging atomic with the operation it describes.
-
-### Cross-Tenant Isolation
-
-Every database query is constructed with the authenticated user's ID as a hard filter at the ORM level. Cross-tenant data access is not possible by design. Controller-level checks alone were considered insufficient — the filter exists at the query level regardless of what the route handler does.
+Activity is logged at the organization level and covers every resource type. Labels and milestones are scoped to projects, not teams or orgs. You cannot create a project without a team, and you cannot create a task without a project.
 
 ---
 
-## Backend Edge Cases and Fixes
+## Stack
 
-### Cascade Deletes
+**Backend**
+- Python 3.12
+- FastAPI
+- async SQLAlchemy + asyncpg
+- PostgreSQL
+- Pydantic v2
+- Alembic (migrations)
+- gatevault (JWT auth — `pip install richard-gatevault`)
+- Docker
+- pytest-asyncio (47 tests passing)
 
-Cascade deletes were configured as SET NULL for created_by and assignee_id foreign keys, and CASCADE for membership and ownership relationships. This means deleting a user does not orphan their tasks but does remove their team and org memberships.
-
-### ProjectCreate Schema
-
-The team_id field was removed from ProjectCreate because it comes from the URL path parameter, not the request body. Leaving it in the schema would allow clients to pass a different team_id in the body than the one in the URL, creating a mismatch. The fix was removing the field from the schema entirely.
-
-### OrganizationMember Timestamp
-
-OrganizationMember and TeamMember models did not originally inherit from TimeStamp. This caused a ResponseValidationError when BaseResponse was updated to include created_at and updated_at. The fix was adding TimeStamp to those models and running a migration with server_default=sa.text('now()') so existing rows got a valid timestamp instead of failing a NOT NULL constraint.
-
-### Username Removed
-
-Username was removed from the User model entirely. Clustra is a project management tool, not a social platform. Full name is used for display everywhere. Since display names are not used to affect database logic or enforce uniqueness, duplicate names are acceptable.
-
-### UserPublicResponse Schema
-
-A separate UserPublicResponse schema was created with only id and full_name. This is what gets returned from the user info endpoint and the candidates endpoint. The full UserResponse is only used for the authenticated user's own profile.
+**Frontend**
+- Vanilla JavaScript with ES Modules
+- Material Symbols Outlined (Google icon font)
+- No framework, no bundler, no build step
 
 ---
 
-## Frontend Decisions
+## Backend Architecture
 
-### Vanilla JS, No Framework
+```
+app/
+  models/       SQLAlchemy ORM models
+  schemas/      Pydantic request and response schemas
+  routers/      FastAPI route handlers
+  services/     business logic and database operations
+  utils/
+    permissions.py     role check utilities used across all services
+    activity.py        log_activity() helper
+    normalization.py   payload normalization before writes
+  database.py   async session factory
+  main.py       application entrypoint, static file serving, router registration
+tests/          async integration tests
+alembic/        database migrations
+```
 
-The frontend was built in vanilla JavaScript with ES Modules. No React, no Vue, no Tailwind, no Bootstrap. This was intentional — the goal was to understand what the browser gives you before reaching for abstractions. Clustra is used as the learning vehicle for JS before moving to TypeScript in v2.
+Routers handle HTTP only — path params, request validation, response serialization. Every route delegates immediately to a service method. Services own all business logic, permission checks, and database operations. This separation means the HTTP layer is thin and the logic layer is testable without an HTTP client.
 
-### Single Shared Sidebar
-
-The sidebar is a single renderSidebar(config) function that injects HTML into a #sidebar_mount div on every page. It is not duplicated across HTML files. This means changing one nav item updates every page.
-
-The sidebar collapses to icons only when not hovered and expands on hover using a pure CSS width transition. Labels fade in using opacity transition on the :hover selector.
-
-### Icon Rail with Material Symbols
-
-Material Symbols are injected once via a dynamically created link tag inside renderSidebar. The link is only added if it does not already exist. Icons are always visible in collapsed state. Labels and badges are hidden with opacity: 0 and revealed on hover using .sidebar:hover descendant selectors. The material-symbols-outlined class is excluded from the opacity rule using :not() so icons stay visible.
-
-### Progressive Sidebar Rendering
-
-Every page renders the sidebar with whatever context is available at that point — even if teams or projects do not exist yet. The sidebar shows disabled states with tooltips explaining what needs to be created first. This prevents blank sidebars on first use and makes the empty state useful rather than just broken-looking.
-
-### Page Init Pattern
-
-Every page follows the same init structure:
-1. Fetch org, teams, and current user in parallel with Promise.all
-2. Default to first team or match team_id from URL if present
-3. Fetch projects for selected team
-4. Render sidebar with available context
-5. Populate breadcrumb
-6. Fetch and render page content
-
-This pattern means pages are consistent, predictable, and handle empty states at every level.
-
-### URL Params for Team and Project Context
-
-URL params carry team_id and project_id. Pages read these on load and match against fetched data, falling back to the first item if the URL param is missing or not found. history.replaceState updates the URL silently when a default is applied so the URL stays bookmarkable.
-
-### getUserInfo Caching
-
-getUserInfo(userId) caches results in a module-level object in services.js. Repeated calls for the same user ID in the same page session return the cached value without hitting the API again. This matters most on activity feeds and member lists where the same user might appear many times.
-
-### Delete Confirmation
-
-API.delete() calls window.confirm() before making the request. If the user cancels, the method returns a synthetic Response with status 499. All calling code checks res.ok before proceeding. This keeps confirmation logic in one place rather than scattered across every delete handler. The 499 status was chosen because it is outside the range of standard HTTP responses so it cannot be confused with a real server response.
-
-### Row Limits
-
-Tables and lists cap at 5 items. This was applied to teams table on org page, projects list on teams page, members list on teams page, and activity feed on org page. The cap keeps the dashboard readable without requiring pagination for v1. A "View All" link was considered and removed — the dedicated page for each resource handles full lists.
-
-### Member Candidates Dropdown
-
-The add team member modal shows a dropdown of eligible users instead of asking for a UUID. The candidates endpoint returns org members minus existing team members. The dropdown is populated on modal open, not on page load, to avoid fetching data that might never be used. The HTML select element ID must match exactly what the JS expects — a mismatch caused a silent failure where the dropdown appeared empty.
-
-### Tasks and Projects: name not title
-
-The task and project models use name as the field, not title. This was caught during frontend wiring when the API returned name but the JS was reading task.title and rendering empty cells. The fix was aligning field names across the payload (what gets sent) and the render functions (what gets read from the response).
+Permission utilities in `app/utils/permissions.py` are centralized. Role checks are not written inline in service methods — they call `check_org_membership()` or `check_team_membership()` with the required role set. This keeps permission logic auditable in one place.
 
 ---
 
-## Known Deferred Issues
+## Auth
 
-These exist intentionally and are documented for v2:
+Auth uses gatevault, a framework-agnostic Python authentication library published on PyPI. Token verification and user payload injection into protected routes happen through gatevault's dependency injection pattern — routes declare `current_user=Depends(validate_user)` and receive the decoded user object automatically.
 
-**Refresh token flow.** The access token expires in 15 minutes. The frontend does not silently refresh it. Re-login is required after inactivity. The fix requires a refresh endpoint in gatevault and an interceptor in api.js that catches 401 responses, attempts a token refresh, and retries the original request.
+The auth layer and RBAC layer are fully decoupled. gatevault handles token lifecycle. The service layer handles role checks. Neither knows about the other.
 
-**Label color field.** The color picker exists in the frontend form and CSS. The Label model does not have a color column yet. A migration is needed to add color: Mapped[str] with a default value.
+Access tokens expire in 15 minutes. Refresh token flow is deferred to v2.
 
-**Task assignee UI.** The assignee_id field exists in the model and schema. The frontend shows the assigned user's name on the task card if present, but there is no UI to assign a user to a task during creation or editing.
+---
 
-**Org member candidates.** The team add member modal uses a proper dropdown. The org add member form still takes a user_id manually. An org-level candidates endpoint was considered but not built — it would return all system users who are not already org members.
+## Roles and Permissions
 
-**Activity descriptions.** The activity feed shows action type and model type but not a human-readable description of what changed. This is a backend schema limitation — the current ActivityResponse does not store a description field.
+**Organization roles:** Owner, Admin, Member
 
+**Team roles:** Lead, Contributor, Viewer
+
+Role sets are defined in `app/utils/permissions.py`:
+
+```python
+ORG_ANY_ROLES = {Owner, Admin, Member}
+ORG_ADMIN_ROLES = {Owner, Admin}
+ORG_OWNER_ROLES = {Owner}
+
+TEAM_VIEW_ROLES = {Lead, Contributor, Viewer}
+TEAM_CONTRIBUTION_ROLES = {Lead, Contributor}
+TEAM_LEAD_ROLES = {Lead}
+```
+
+Every service method that reads or writes data calls the appropriate check before doing anything else. Org admins bypass team membership checks on read-only routes. All write operations require the correct team role regardless of org role.
+
+When a user creates a team they are automatically added as a TeamMember with the Lead role. This prevents teams from existing with no one able to manage them.
+
+---
+
+## Membership
+
+Org membership is a prerequisite for team membership. A user cannot belong to a team without first belonging to that team's organization. This is enforced at the service layer and at the database level through the membership hierarchy.
+
+The original design allowed adding users directly to teams without checking org membership first. This was corrected mid-build. The team member candidate endpoint now returns org members minus existing team members — not all system users. This means every user who can be added to a team is guaranteed to already be an org member.
+
+Removing a user from an org cascades correctly through their team memberships via configured cascade deletes.
+
+---
+
+## Tenant Isolation
+
+Every database query is built with the authenticated user's ID as a hard filter at the ORM level. Org-scoped queries check that the requesting user is a member of that org before returning anything. Team-scoped queries check both org membership and team membership.
+
+Cross-tenant data access is not possible by design. It is not prevented only by route-level checks that could be bypassed — the filter exists at the query construction level regardless of how the route is called.
+
+---
+
+## Activity Logging
+
+Every create, update, and delete across all resource types writes an activity entry. The activity record stores:
+
+- `user_id` — who took the action
+- `action` — created, updated, or deleted
+- `model_type` — which resource type (organizations, teams, projects, tasks, labels, milestones, organization_members, team_members)
+- `model_id` — the ID of the affected record
+- `org_id` — which organization this activity belongs to
+- `created_at` — timestamp
+
+Activity logging uses `db.flush()` not `db.commit()` at the point of logging. If the main operation fails, the activity entry does not persist independently. The commit happens once at the end of the service method so the activity log and the data change are always atomic.
+
+---
+
+## Cascade Deletes
+
+Deleting an organization cascades through all teams, projects, tasks, labels, milestones, and membership records in that org.
+
+Deleting a team cascades through its projects, tasks, labels, milestones, and team memberships.
+
+`created_by` and `assignee_id` foreign keys are configured as SET NULL rather than CASCADE. Deleting a user removes their org and team memberships but does not delete the tasks or resources they created or were assigned to.
+
+---
+
+## Frontend Architecture
+
+```
+frontend/
+  static/
+    css/
+      styles.css        shared design tokens, reset, navbar, modal, form, button styles
+      sidebar.css       shared sidebar component styles
+      {page}.css        page-specific styles — each imports styles.css and sidebar.css
+    js/
+      api.js            HTTP client — GET/POST/PATCH/DELETE, auto-attaches Bearer token
+      auth.js           requireAuth() and logout()
+      sidebar.js        renderSidebar(config) — builds and injects sidebar HTML
+      services.js       data fetching helpers with error handling and user caching
+      {page}.js         page logic
+  {page}.html
+```
+
+Pages: `login`, `signup`, `orgs`, `org`, `teams`, `projects`, `tasks`, `milestones`, `labels`, `activity`, `settings`
+
+FastAPI serves the frontend through a `StaticFiles` mount for `/static` and a catch-all route that serves HTML files from the `frontend/` directory. No separate frontend server is needed.
+
+### api.js
+
+`API.get()`, `API.post()`, `API.patch()`, and `API.delete()` all attach the Bearer token from localStorage automatically. `API.delete()` calls `window.confirm()` before making the request (see [Delete Confirmation](#delete-confirmation)).
+
+### auth.js
+
+`requireAuth()` checks for a token in localStorage and redirects to `/login.html` if none is found. `logout()` clears the token and redirects to `/login.html`. Every protected page calls `requireAuth()` at the top of its module before anything else runs.
+
+---
+
+## Sidebar
+
+The sidebar is a single shared component. `renderSidebar(config)` builds the full sidebar HTML string and injects it into `#sidebar_mount` — a div that exists on every page except login, signup, and orgs. Nothing is duplicated across HTML files.
+
+The config shape:
+
+```js
+{
+    orgId,
+    orgName,
+    teamId,       // null if no team is in scope
+    projectId,    // null if no project is in scope
+    activePage,   // 'org' | 'teams' | 'projects' | 'tasks' | 'milestones' | 'labels' | 'activity' | 'settings'
+    counts: { teams, projects, tasks, milestones },
+    user: { initial, name, role }
+}
+```
+
+**Collapse behavior:** the sidebar collapses to icon-only when not hovered and expands on hover using a pure CSS `width` transition on `.sidebar`. Labels, text, and badges use `opacity: 0` in the default state and `opacity: 1` on `.sidebar:hover` descendant selectors. Icons use Material Symbols Outlined and are excluded from the opacity rule using `:not(.material-symbols-outlined)` so they stay visible in the collapsed state.
+
+**Nav item states:** items that require context that does not exist yet show as disabled with a `title` tooltip. Items that require a `teamId` (Projects) are disabled with "Create a team first" when `config.teamId` is null. Items that require a `projectId` (Tasks, Milestones, Labels) are disabled with "Create a project first" when `config.projectId` is null. Once context exists, links carry the full IDs needed to load the page correctly.
+
+Material Symbols are injected via a dynamically created `<link>` tag inside `renderSidebar`. The link is only added if it does not already exist in the document head.
+
+Logout is wired to the user row at the bottom of the sidebar after `mount.innerHTML` is set — it cannot be attached before because the element does not exist in the DOM until that point.
+
+---
+
+## Page Init Pattern
+
+Every page follows the same initialization structure:
+
+```js
+requireAuth()
+
+const params = new URLSearchParams(window.location.search)
+const orgId = params.get('org_id')
+
+async function init() {
+    // 1. fetch org, teams, and current user in parallel
+    const [org, teams, user] = await Promise.all([getOrg(orgId), getTeams(orgId), getUser()])
+
+    if (!org) return
+
+    // 2. default to first team or match team_id from URL
+    currentTeam = teams.find(t => t.id === params.get('team_id')) ?? teams[0] ?? null
+
+    // 3. fetch projects for selected team if one exists
+    if (currentTeam) {
+        allProjects = await getProjects(orgId, currentTeam.id)
+        currentProject = allProjects[0] ?? null
+    }
+
+    // 4. always render sidebar with whatever context is available
+    renderSidebar({ orgId, orgName: org.name, teamId: currentTeam?.id ?? null, ... })
+
+    // 5. populate breadcrumb
+    // 6. fetch and render page content
+}
+
+init()
+```
+
+The sidebar always renders even when teams or projects do not exist yet. Empty states on each page include a link to where the missing item can be created. This means no page ever shows a blank sidebar — even a first-time user with no teams sees the sidebar correctly.
+
+---
+
+## services.js
+
+Shared data fetching helpers with built-in error logging. All functions return a sensible default (`null` or `[]`) on failure so pages can check for empty data without catching exceptions.
+
+```js
+getOrg(orgId)                           // GET /orgs/{orgId}
+getTeams(orgId)                         // GET /orgs/{orgId}/teams
+getProjects(orgId, teamId)              // GET /orgs/{orgId}/teams/{teamId}/projects
+getOrgMembers(orgId)                    // GET /orgs/{orgId}/members
+getTeamMembers(orgId, teamId)           // GET /orgs/{orgId}/teams/{teamId}/members
+getTeamMemberCandidates(orgId, teamId)  // GET /orgs/{orgId}/teams/{teamId}/members/candidates
+getUser()                               // GET /user/me
+getUserInfo(userId)                     // GET /user/{userId} — cached
+```
+
+`getUserInfo()` caches results in a module-level object:
+
+```js
+const userCache = {}
+
+export async function getUserInfo(userId) {
+    if (userCache[userId]) return userCache[userId]
+    const res = await API.get(`/user/${userId}`)
+    if (!res.ok) return null
+    const user = await res.json()
+    userCache[userId] = user
+    return user
+}
+```
+
+This matters for activity feeds and member lists where the same user ID appears many times. Without caching, 10 activity items from the same user would fire 10 identical API requests.
+
+---
+
+## Delete Confirmation
+
+`API.delete()` calls `window.confirm()` before making the request:
+
+```js
+async delete(url) {
+    if (!confirm('Are you sure? This action cannot be undone.')) {
+        return new Response(null, { status: 499, statusText: 'User Cancelled' })
+    }
+    const response = await fetch(url, { method: 'DELETE', headers: this.authHeaders() })
+    return response
+}
+```
+
+If the user cancels, a synthetic 499 response is returned. All calling code checks `res.ok` before proceeding. Confirmation logic lives in one place — not duplicated across every delete handler on every page.
+
+---
+
+## Member Candidates
+
+When adding a member to a team, the modal populates a dropdown of eligible users rather than asking for a raw UUID. The candidates endpoint at `GET /orgs/{org_id}/teams/{team_id}/members/candidates` returns org members who are not already on the selected team.
+
+The dropdown is populated on modal open, not on page load, to avoid fetching data that might never be used:
+
+```js
+document.getElementById('add_member_btn').addEventListener('click', async () => {
+    await populateTeamMemberCandidates()
+    addMemberModal.classList.remove('hidden')
+})
+```
+
+A similar candidates pattern exists at the org level for adding org members — returning all system users who are not yet in the org.
+
+---
+
+## Project and Team Switcher
+
+The teams page and project page include a breadcrumb switcher dropdown. Clicking the current team or project name in the breadcrumb opens a dropdown listing all available teams or projects. Selecting a different item re-fetches and re-renders the relevant content without a full page reload.
+
+The URL updates silently using `history.replaceState` when a selection is made so the page remains bookmarkable and the back button behaves correctly.
+
+---
+
+## Row Limits
+
+Overview tables and lists on dashboard pages cap at 5 items. This applies to the teams table on the org page, the projects list on the teams page, and the members list on the teams page. Full lists are available on each resource's dedicated page. The cap keeps dashboards readable without requiring pagination for v1.
+
+---
+
+## Local Development
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` and fill in your database URL and secret key.
+
+Run migrations:
+
+```bash
+alembic upgrade head
+```
+
+Start the server:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Open `http://localhost:8000` in your browser. The frontend is served directly by FastAPI.
+
+---
+
+## Docker
+
+```bash
+docker compose up
+```
+
+The Dockerfile uses `python:3.12-slim`. The startup script runs `alembic upgrade head` before starting uvicorn so schema state is always synchronized when the container starts.
+
+---
+
+## Running Tests
+
+```bash
+pytest
+```
+
+47 tests passing. Tests cover organization CRUD, team CRUD, project CRUD, task CRUD, label and milestone operations, membership management, cascade deletes, activity logging, and permission boundary enforcement. Tests use `pytest-asyncio` with an async SQLAlchemy test session that rolls back after each test.
+
+---
+
+## Current Status
+
+**Backend:** complete. All models, schemas, services, routers, permissions, activity logging, migrations, and tests are done and passing.
+
+**Frontend:** functional. All pages connect to real API data. Full CRUD works across organizations, teams, projects, tasks, milestones, and labels. The frontend is intentionally unpolished in places — it was built to be correct before it was built to be beautiful. A redesign toward a richer dashboard layout is planned for v2 alongside a TypeScript migration.
+
+---
+
+## Known Gaps
+
+These are real limitations that exist intentionally and are documented for v2:
+
+**Refresh token flow.** The access token expires in 15 minutes. The frontend does not silently refresh it — re-login is required after inactivity. The fix requires a refresh endpoint and a 401 interceptor in `api.js` that retries failed requests after refreshing.
+
+**Task assignee UI.** The `assignee_id` field exists in the model and schema. The frontend displays the assigned user's name on task cards if present but there is no picker UI for assigning a user when creating or editing a task.
+
+**Activity descriptions.** The activity feed shows action type and model type but not a human-readable description of what specifically changed. The `ActivityResponse` schema does not currently include a description field.
+
+---
+
+*Built for the love of development by Richard Oyelowo*
