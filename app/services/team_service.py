@@ -42,7 +42,6 @@ class TeamService:
 
         db.add(member)
 
-        # creates activity
         await log_activity(
             current_user,
             ActivityType.CREATED,
@@ -53,15 +52,12 @@ class TeamService:
         )
 
         await db.commit()
-        result = await db.execute(
-             select(TeamMember).where(TeamMember.team_id == team.id)
-        )
-        print(result.scalars().all())
         await db.refresh(team)
 
         return team
+        db.add(member)
 
-    
+            
     async def get_teams(self, org_id: UUID, current_user: UUID, db: AsyncSession):
         org_member = await check_org_membership(org_id, current_user, ORG_ANY_ROLES, db)
         teams = []

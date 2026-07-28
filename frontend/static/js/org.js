@@ -183,11 +183,15 @@ async function init() {
             desc: formData.get("desc") || null,
         };
         const res = await API.post(`/orgs/${orgId}/teams/`, payload);
-        if (res.ok) {
-            createTeamModal.classList.add("hidden");
-            createTeamForm.reset();
-            await loadTeams();
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.detail ?? "Failed to create team.");
+            return;
         }
+
+        createTeamModal.classList.add("hidden");
+        createTeamForm.reset();
+        await loadTeams();
     });
 
     // Org members modal
