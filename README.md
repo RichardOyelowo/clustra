@@ -114,6 +114,17 @@ Permission utilities in `app/utils/permissions.py` are centralized. Role checks 
 
 `db.commit()` expires every attribute on the objects involved, so touching an attribute like `team.id` right after a commit and before `db.refresh()` triggers a lazy reload outside of an await, which async SQLAlchemy can't do safely. This surfaced once as a `MissingGreenlet` error on team creation, traced to a leftover debug query sitting between the commit and the refresh. The fix is ordering: commit, then refresh, then touch attributes, never the other way around.
 
+```python
+# broke, touches team.id after commit expired it, before refresh reloaded it
+await db.commit()
+result = await db.execute(select(TeamMember).where(TeamMember.team_id == team.id))
+await db.refresh(team)
+
+# fixed, refresh happens immediately after commit, nothing touches team in between
+await db.commit()
+await db.refresh(team)
+```
+
 ---
 
 ## Auth
@@ -122,19 +133,98 @@ Auth uses gatevault, a framework-agnostic Python authentication library publishe
 
 The auth layer and RBAC layer are fully decoupled. gatevault handles token lifecycle. The service layer handles role checks. Neither knows about the other.
 
+```python
+async def validate_user(
+    token: str = Depends(Oauth2_scheme), db: AsyncSession = Depends(db_session)
+):
+    payload = tm.decode_token(token)
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+    ...
+```
+
 Access tokens expire in 15 minutes and live in a plain JS variable on the frontend, never localStorage, so a script running on the page can't get at a long lived credential even if one somehow got injected. Refresh tokens live in an httpOnly cookie scoped to `/auth`, which JavaScript can't read at all, regardless of how it got there. Keeping both tokens in memory only was considered and rejected, it holds up better against XSS but wipes on every hard reload, which turns into a login prompt far more often than a refresh flow is supposed to allow. localStorage for the refresh token was rejected outright, a leaked refresh token there stays valid for its full multi day lifetime rather than the few minutes a leaked access token would give an attacker.
+
+```python
+def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 7,
+        path="/auth",
+    )
+```
 
 ### Token Refresh
 
 `/auth/login` sets the refresh token as the httpOnly cookie and returns only the access token in the response body. `/auth/refresh` reads the cookie, calls gatevault's `OAuthHandler.async_refresh()`, and rotates both tokens on every call. The refresh token that comes back replaces the one sent in, the old one is never reused. Rotating on every call rather than reusing a single refresh token for its whole 7 day lifetime shrinks how long a stolen token stays useful in practice, even without a way yet to detect that it was stolen at all.
 
-`validate_user` checks the token's `type` claim before decoding anything else, so a refresh token presented at a protected route gets rejected outright, it only ever works at `/auth/refresh`. This closes a real gap: a refresh token also carries `user_id`, since it needs to identify who to reissue tokens for, and without this check it would pass through `validate_user` exactly like an access token would.
+```python
+@auth_router.post("/refresh")
+async def refresh(response: Response, request: Request, oauth: OAuthHandler = Depends(get_oauth)):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+    tokens = await auth_service.refresh(refresh_token, oauth)
+    _set_refresh_cookie(response, tokens["refresh_token"])
+    return {"access_token": tokens["access_token"], "token_type": tokens["token_type"]}
+```
+
+`validate_user` checks the token's `type` claim before decoding anything else, so a refresh token presented at a protected route gets rejected outright, it only ever works at `/auth/refresh` (see the snippet above). This closes a real gap: a refresh token also carries `user_id`, since it needs to identify who to reissue tokens for, and without this check it would pass through `validate_user` exactly like an access token would.
 
 `get_user_by_id` is passed into `OAuthHandler` alongside `get_user` so `async_refresh` can confirm the user still exists before handing out a new pair. Without it, a deleted or deactivated account's refresh token keeps working right up until its own 7 day expiry, since nothing re-checks the database on refresh. The cost is one extra query per refresh call, roughly once every 15 minutes per active user, judged worth it so that window doesn't sit open silently.
 
+```python
+async def get_oauth(db: AsyncSession = Depends(db_session)) -> OAuthHandler:
+    async def get_user(email: str):
+        result = await db.execute(select(User).where(User.email == email.lower()))
+        return result.scalar_one_or_none()
+
+    async def get_user_by_id(user_id):
+        result = await db.execute(select(User).where(User.id == user_id))
+        return result.scalar_one_or_none()
+
+    return OAuthHandler(token_manager=tm, get_user=get_user, get_user_by_id=get_user_by_id)
+```
+
 Every token gatevault issues also carries a random `jti` claim. JWT signing is deterministic, two tokens minted for the same user in the same second used to come out byte identical, which quietly meant rotation sometimes did nothing at all, the "new" refresh token was the exact same string as the one it was supposed to replace. `jti` fixes that, and it's also the field a future reuse-detection store would key on.
 
+```python
+payload = {
+    "user_id": encoded_user_id,
+    "exp": datetime.now(timezone.utc) + exp,
+    "type": token_type,
+    "jti": str(uuid.uuid4()),
+    **kwargs
+}
+```
+
 On the frontend, `api.js` is the only place that knows about the access token. Every request goes through it. If a request comes back 401, `api.js` calls `/auth/refresh` once, retries the original request with the new token, and only redirects to `/login.html` if the refresh itself fails. Every page module just calls `await requireAuth()` at the top and otherwise has no idea tokens exist. This keeps the retry logic in one place instead of duplicated across every page, if it ever needs to change, it changes once.
+
+```javascript
+async request(url, options = {}) {
+    options.headers = { ...this.authHeaders(), ...options.headers };
+    options.credentials = "include";
+
+    let response = await fetch(url, options);
+
+    if (response.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (!newToken) {
+            window.location.href = "/login.html";
+            return response;
+        }
+        options.headers.Authorization = `Bearer ${newToken}`;
+        response = await fetch(url, options);
+    }
+
+    return response;
+}
+```
 
 Reuse detection, family based rotation, where every token traces back to a login and reusing an already-rotated token invalidates the whole family, is deferred to v2. It needs a persistence layer tracking token history that doesn't exist yet. Rotation without it is still a real improvement over no rotation, it just doesn't catch a thief who gets to a stolen token before the legitimate user's next refresh does.
 
@@ -170,6 +260,22 @@ Org membership is a prerequisite for team membership. A user cannot belong to a 
 
 The original design allowed adding users directly to teams without checking org membership first. This was corrected mid-build. The team member candidate endpoint now returns org members minus existing team members — not all system users. This means every user who can be added to a team is guaranteed to already be an org member.
 
+```python
+async def get_team_member_candidates(self, org_id: UUID, team_id: UUID, db: AsyncSession):
+    org_members = await db.execute(
+        select(OrgMember.user_id).where(OrgMember.org_id == org_id)
+    )
+    existing_team_members = await db.execute(
+        select(TeamMember.user_id).where(TeamMember.team_id == team_id)
+    )
+    org_member_ids = set(org_members.scalars().all())
+    existing_ids = set(existing_team_members.scalars().all())
+    candidate_ids = org_member_ids - existing_ids
+
+    result = await db.execute(select(User).where(User.id.in_(candidate_ids)))
+    return result.scalars().all()
+```
+
 Removing a user from an org cascades correctly through their team memberships via configured cascade deletes.
 
 ---
@@ -177,6 +283,20 @@ Removing a user from an org cascades correctly through their team memberships vi
 ## Tenant Isolation
 
 Every database query is built with the authenticated user's ID as a hard filter at the ORM level. Org-scoped queries check that the requesting user is a member of that org before returning anything. Team-scoped queries check both org membership and team membership.
+
+```python
+async def check_org_membership(org_id: UUID, user_id: UUID, allowed_roles: set, db: AsyncSession):
+    result = await db.execute(
+        select(OrgMember).where(
+            OrgMember.org_id == org_id,
+            OrgMember.user_id == user_id,
+        )
+    )
+    member = result.scalar_one_or_none()
+    if not member or member.role not in allowed_roles:
+        raise HTTPException(status_code=403, detail="Not a member of this organization")
+    return member
+```
 
 Cross-tenant data access is not possible by design. It is not prevented only by route-level checks that could be bypassed — the filter exists at the query construction level regardless of how the route is called.
 
@@ -193,7 +313,34 @@ Every create, update, and delete across all resource types writes an activity en
 - `org_id` — which organization this activity belongs to
 - `created_at` — timestamp
 
+```python
+async def log_activity(user_id, action, model_type, model_id, org_id, db: AsyncSession):
+    activity = Activity(
+        user_id=user_id,
+        action=action,
+        model_type=model_type,
+        model_id=model_id,
+        org_id=org_id,
+    )
+    db.add(activity)
+    await db.flush()
+```
+
 Activity logging uses `db.flush()` not `db.commit()` at the point of logging. If the main operation fails, the activity entry does not persist independently. The commit happens once at the end of the service method so the activity log and the data change are always atomic.
+
+```python
+db.add(team)
+await db.flush()          # team.id is available now, nothing committed yet
+
+member = TeamMember(team_id=team.id, user_id=current_user, role=TeamMemberRole.LEAD)
+db.add(member)
+
+await log_activity(current_user, ActivityType.CREATED, ModelType.TEAMS, team.id, org_id, db)
+
+await db.commit()          # team, member, and activity land together or not at all
+await db.refresh(team)
+return team
+```
 
 ---
 
@@ -202,6 +349,17 @@ Activity logging uses `db.flush()` not `db.commit()` at the point of logging. If
 Deleting an organization cascades through all teams, projects, tasks, labels, milestones, and membership records in that org.
 
 Deleting a team cascades through its projects, tasks, labels, milestones, and team memberships.
+
+```python
+class Team(Base):
+    __tablename__ = "teams"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    org_id: Mapped[UUID] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"))
+    created_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+
+    projects: Mapped[list["Project"]] = relationship(cascade="all, delete-orphan")
+```
 
 `created_by` and `assignee_id` foreign keys are configured as SET NULL rather than CASCADE. Deleting a user removes their org and team memberships but does not delete the tasks or resources they created or were assigned to.
 
