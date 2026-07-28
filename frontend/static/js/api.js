@@ -1,54 +1,45 @@
-const API = {
-    getToken() {
-        return localStorage.getItem("token");
-    },
+import { getAccessToken, refreshAccessToken } from "./auth.js";
 
+const API = {
     authHeaders() {
         return {
-            Authorization: `Bearer ${this.getToken()}`,
+            Authorization: `Bearer ${getAccessToken()}`,
             "Content-Type": "application/json",
         };
     },
+    async request(url, options = {}) {
+        options.headers = { ...this.authHeaders(), ...options.headers };
+        options.credentials = "include";
 
-    async get(url) {
-        const response = await fetch(url, {
-            headers: this.authHeaders(),
-        });
-        return response;
-    },
+        let response = await fetch(url, options);
 
-    async post(url, data) {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: this.authHeaders(),
-            body: JSON.stringify(data),
-        });
-        return response;
-    },
-
-    async patch(url, data) {
-        const response = await fetch(url, {
-            method: "PATCH",
-            headers: this.authHeaders(),
-            body: JSON.stringify(data),
-        });
-        return response;
-    },
-
-    async delete(url) {
-        if (!confirm("Are you sure? This action cannot be undone.")) {
-            return new Response(null, {
-                status: 499,
-                statusText: "User Cancelled",
-            });
+        if (response.status === 401) {
+            const newToken = await refreshAccessToken();
+            if (!newToken) {
+                window.location.href = "/login.html";
+                return response;
+            }
+            options.headers.Authorization = `Bearer ${newToken}`;
+            response = await fetch(url, options);
         }
 
-        const response = await fetch(url, {
-            method: "DELETE",
-            headers: this.authHeaders(),
-        });
         return response;
+    },
+    async get(url) {
+        return this.request(url);
+    },
+    async post(url, data) {
+        return this.request(url, { method: "POST", body: JSON.stringify(data) });
+    },
+    async patch(url, data) {
+        return this.request(url, { method: "PATCH", body: JSON.stringify(data) });
+    },
+    async delete(url) {
+        if (!confirm("Are you sure? This action cannot be undone.")) {
+            return new Response(null, { status: 499, statusText: "User Cancelled" });
+        }
+        return this.request(url, { method: "DELETE" });
     },
 };
 
-export default API
+export default API;
