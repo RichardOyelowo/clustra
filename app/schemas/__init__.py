@@ -12,6 +12,7 @@ from .milestone import MilestoneCreate, MilestoneResponse, MilestoneUpdate
 from .project import ProjectCreate, ProjectResponse, ProjectUpdate
 from .activity import ActivityCreate, ActivityResponse
 from .task import TaskCreate, TaskResponse, TaskUpdate
+from .token import RefreshRequest
 
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "TaskCreate", "TaskResponse", "TaskUpdate",
     "TaskLabelCreate", "TaskLabelResponse",
     "ActivityCreate", "ActivityResponse",
+    "RefreshRequest"
 ]
