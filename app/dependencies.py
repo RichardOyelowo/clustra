@@ -1,5 +1,5 @@
 from gatevault import TokenDecodeError, TokenExpiredError
-from gatevault import OAuthHandler, InvalidTokenError 
+from gatevault import OAuthHandler, InvalidTokenError
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, Depends
@@ -16,8 +16,12 @@ async def get_oauth(db: AsyncSession = Depends(db_session)) -> OAuthHandler:
         lower_email = email.lower()
         result = await db.execute(select(User).where(User.email == lower_email))
         return result.scalar_one_or_none()
-    
-    return OAuthHandler(token_manager=tm, get_user=get_user)
+
+    async def get_user_by_id(user_id):
+        result = await db.execute(select(User).where(User.id == user_id))
+        return result.scalar_one_or_none()
+
+    return OAuthHandler(token_manager=tm, get_user=get_user, get_user_by_id=get_user_by_id)
 
 
 async def validate_user(
@@ -25,20 +29,17 @@ async def validate_user(
 ):
     try:
         payload = tm.decode_token(token)
+        if payload.get("type") != "access":
+            raise HTTPException(status_code=401, detail="Invalid token type")
         user_id = payload.get("user_id")
-
         if not user_id:
             raise HTTPException(
                 status_code=401, detail="Invalid token: user_id missing"
             )
-
     except (TokenExpiredError, TokenDecodeError, InvalidTokenError) as e:
         raise HTTPException(status_code=401, detail=str(e))
-
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
     return user
