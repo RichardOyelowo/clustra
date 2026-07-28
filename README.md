@@ -5,6 +5,7 @@
 ## Table of Contents
 
 - [What It Is](#what-it-is)
+- [Screenshots](#screenshots)
 - [Hierarchy](#hierarchy)
 - [Stack](#stack)
 - [Backend Architecture](#backend-architecture)
@@ -35,6 +36,22 @@
 Clustra is a project management platform built around strict tenant isolation and clear service boundaries. Every resource belongs to an organization. Every permission check happens before data is read or written. The backend was built to be correct under real use, not just functional in a demo.
 
 The frontend is vanilla JavaScript — no React, no Vue, no Tailwind. This was a deliberate choice to understand what the browser actually gives you before reaching for abstractions. It connects directly to the FastAPI backend with no intermediary.
+
+---
+
+## Screenshots
+
+**Organization overview**, teams, members, activity feed, and org info all on one page.
+
+![Organization page](assets/images/org_page_no_sidebar.png)
+
+**The sidebar** collapses to icon only and expands on hover, pure CSS, no JS toggle state to manage.
+
+![Organization page with sidebar expanded](assets/images/org_page_expanded_sidebar.png)
+
+**Activity feed**, every create, update, and delete across every resource type in the organization, newest first.
+
+![Activity page](assets/images/activity_page.png)
 
 ---
 
@@ -95,15 +112,31 @@ Routers handle HTTP only — path params, request validation, response serializa
 
 Permission utilities in `app/utils/permissions.py` are centralized. Role checks are not written inline in service methods — they call `check_org_membership()` or `check_team_membership()` with the required role set. This keeps permission logic auditable in one place.
 
+`db.commit()` expires every attribute on the objects involved, so touching an attribute like `team.id` right after a commit and before `db.refresh()` triggers a lazy reload outside of an await, which async SQLAlchemy can't do safely. This surfaced once as a `MissingGreenlet` error on team creation, traced to a leftover debug query sitting between the commit and the refresh. The fix is ordering: commit, then refresh, then touch attributes, never the other way around.
+
 ---
 
 ## Auth
 
-Auth uses gatevault, a framework-agnostic Python authentication library published on PyPI. Token verification and user payload injection into protected routes happen through gatevault's dependency injection pattern — routes declare `current_user=Depends(validate_user)` and receive the decoded user object automatically.
+Auth uses gatevault, a framework-agnostic Python authentication library published on PyPI (`pip install richard-gatevault`, maintained separately at [github.com/RichardOyelowo/gatevault](https://github.com/RichardOyelowo/gatevault)). Token verification and user payload injection into protected routes happen through gatevault's dependency injection pattern. Routes declare `current_user=Depends(validate_user)` and receive the decoded user object automatically.
 
 The auth layer and RBAC layer are fully decoupled. gatevault handles token lifecycle. The service layer handles role checks. Neither knows about the other.
 
-Access tokens expire in 15 minutes. Refresh token flow is deferred to v2.
+Access tokens expire in 15 minutes and live in a plain JS variable on the frontend, never localStorage, so a script running on the page can't get at a long lived credential even if one somehow got injected. Refresh tokens live in an httpOnly cookie scoped to `/auth`, which JavaScript can't read at all, regardless of how it got there. Keeping both tokens in memory only was considered and rejected, it holds up better against XSS but wipes on every hard reload, which turns into a login prompt far more often than a refresh flow is supposed to allow. localStorage for the refresh token was rejected outright, a leaked refresh token there stays valid for its full multi day lifetime rather than the few minutes a leaked access token would give an attacker.
+
+### Token Refresh
+
+`/auth/login` sets the refresh token as the httpOnly cookie and returns only the access token in the response body. `/auth/refresh` reads the cookie, calls gatevault's `OAuthHandler.async_refresh()`, and rotates both tokens on every call. The refresh token that comes back replaces the one sent in, the old one is never reused. Rotating on every call rather than reusing a single refresh token for its whole 7 day lifetime shrinks how long a stolen token stays useful in practice, even without a way yet to detect that it was stolen at all.
+
+`validate_user` checks the token's `type` claim before decoding anything else, so a refresh token presented at a protected route gets rejected outright, it only ever works at `/auth/refresh`. This closes a real gap: a refresh token also carries `user_id`, since it needs to identify who to reissue tokens for, and without this check it would pass through `validate_user` exactly like an access token would.
+
+`get_user_by_id` is passed into `OAuthHandler` alongside `get_user` so `async_refresh` can confirm the user still exists before handing out a new pair. Without it, a deleted or deactivated account's refresh token keeps working right up until its own 7 day expiry, since nothing re-checks the database on refresh. The cost is one extra query per refresh call, roughly once every 15 minutes per active user, judged worth it so that window doesn't sit open silently.
+
+Every token gatevault issues also carries a random `jti` claim. JWT signing is deterministic, two tokens minted for the same user in the same second used to come out byte identical, which quietly meant rotation sometimes did nothing at all, the "new" refresh token was the exact same string as the one it was supposed to replace. `jti` fixes that, and it's also the field a future reuse-detection store would key on.
+
+On the frontend, `api.js` is the only place that knows about the access token. Every request goes through it. If a request comes back 401, `api.js` calls `/auth/refresh` once, retries the original request with the new token, and only redirects to `/login.html` if the refresh itself fails. Every page module just calls `await requireAuth()` at the top and otherwise has no idea tokens exist. This keeps the retry logic in one place instead of duplicated across every page, if it ever needs to change, it changes once.
+
+Reuse detection, family based rotation, where every token traces back to a login and reusing an already-rotated token invalidates the whole family, is deferred to v2. It needs a persistence layer tracking token history that doesn't exist yet. Rotation without it is still a real improvement over no rotation, it just doesn't catch a thief who gets to a stolen token before the legitimate user's next refresh does.
 
 ---
 
@@ -184,8 +217,9 @@ frontend/
       sidebar.css       shared sidebar component styles
       {page}.css        page-specific styles — each imports styles.css and sidebar.css
     js/
-      api.js            HTTP client — GET/POST/PATCH/DELETE, auto-attaches Bearer token
-      auth.js           requireAuth() and logout()
+      api.js            HTTP client for GET/POST/PATCH/DELETE, attaches the in-memory
+                        access token and retries once through a refresh on a 401
+      auth.js           in-memory access token, requireAuth(), refreshAccessToken(), logout()
       sidebar.js        renderSidebar(config) — builds and injects sidebar HTML
       services.js       data fetching helpers with error handling and user caching
       {page}.js         page logic
@@ -198,11 +232,11 @@ FastAPI serves the frontend through a `StaticFiles` mount for `/static` and a ca
 
 ### api.js
 
-`API.get()`, `API.post()`, `API.patch()`, and `API.delete()` all attach the Bearer token from localStorage automatically. `API.delete()` calls `window.confirm()` before making the request (see [Delete Confirmation](#delete-confirmation)).
+`API.get()`, `API.post()`, `API.patch()`, and `API.delete()` all attach the current in-memory access token automatically. If a request comes back 401, `api.js` calls `/auth/refresh` once, retries the original request with the new token, and only redirects to `/login.html` if the refresh itself fails. `API.delete()` calls `window.confirm()` before making the request (see [Delete Confirmation](#delete-confirmation)).
 
 ### auth.js
 
-`requireAuth()` checks for a token in localStorage and redirects to `/login.html` if none is found. `logout()` clears the token and redirects to `/login.html`. Every protected page calls `requireAuth()` at the top of its module before anything else runs.
+The access token lives in a module level variable, not localStorage, so it does not survive a hard reload on its own. `requireAuth()` returns the current token if one is already in memory. Otherwise it calls `/auth/refresh` using the httpOnly cookie the browser already holds, and only redirects to `/login.html` if that fails too. `logout()` clears the in-memory token, calls `/auth/logout` to clear the cookie server side, and redirects to `/login.html`. Every protected page calls `await requireAuth()` at the top of its module before anything else runs. The `await` matters, the refresh call is asynchronous.
 
 ---
 
@@ -239,7 +273,7 @@ Logout is wired to the user row at the bottom of the sidebar after `mount.innerH
 Every page follows the same initialization structure:
 
 ```js
-requireAuth()
+await requireAuth()
 
 const params = new URLSearchParams(window.location.search)
 const orgId = params.get('org_id')
@@ -414,7 +448,7 @@ pytest
 
 These are real limitations that exist intentionally and are documented for v2:
 
-**Refresh token flow.** The access token expires in 15 minutes. The frontend does not silently refresh it — re-login is required after inactivity. The fix requires a refresh endpoint and a 401 interceptor in `api.js` that retries failed requests after refreshing.
+**Refresh token reuse detection.** `/auth/refresh` rotates the token pair on every call, but nothing tracks token history anywhere. A stolen refresh token replayed before the legitimate user's next refresh is not currently detectable. Family based rotation with a token store, invalidating every descendant token on reuse, is planned for v2.
 
 **Task assignee UI.** The `assignee_id` field exists in the model and schema. The frontend displays the assigned user's name on task cards if present but there is no picker UI for assigning a user when creating or editing a task.
 
@@ -423,3 +457,4 @@ These are real limitations that exist intentionally and are documented for v2:
 ---
 
 *Built for the love of development by Richard Oyelowo*
+
